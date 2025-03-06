@@ -8,7 +8,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="24dp"
-        android:text="Launcher Settings"
+        android:text="@string/title_launcher_settings"
         android:textSize="24sp"
         android:textStyle="bold" />
 
@@ -17,7 +17,7 @@
         android:layout_height="wrap_content"
         android:paddingHorizontal="24dp"
         android:paddingBottom="8dp"
-        android:text="Hidden Apps"
+        android:text="@string/title_hidden_apps"
         android:textSize="18sp" />
 
     <androidx.recyclerview.widget.RecyclerView
