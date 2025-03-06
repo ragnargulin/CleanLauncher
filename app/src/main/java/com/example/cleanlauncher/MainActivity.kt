@@ -10,37 +10,18 @@ import androidx.recyclerview.widget.RecyclerView
 
 class MainActivity : AppCompatActivity() {
     private lateinit var favoriteAppsView: RecyclerView
+    private lateinit var launcherPreferences: LauncherPreferences
     private var startY = 0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Initialize views
+        launcherPreferences = LauncherPreferences(this)
         favoriteAppsView = findViewById(R.id.favorite_apps)
-
-        // Set up RecyclerView
         favoriteAppsView.layoutManager = LinearLayoutManager(this)
 
-        val apps = getInstalledApps()
-        val favoriteApps = apps.take(5).map { LauncherItem.App(it) }
-        val launcherItems = listOf(LauncherItem.Spacer) + favoriteApps + LauncherItem.AllApps
-
-        favoriteAppsView.adapter = AppAdapter(
-            items = launcherItems,
-            onItemClick = { item ->
-                when (item) {
-                    is LauncherItem.App -> launchApp(item.appInfo.packageName)
-                    LauncherItem.AllApps -> {
-                        val intent = Intent(this, AppDrawerActivity::class.java)
-                        startActivity(intent)
-                        overridePendingTransition(R.anim.slide_up, 0)
-                    }
-                    LauncherItem.Spacer -> { /* Do nothing */ }
-                }
-            },
-            onItemLongClick = { _, _ -> false } // No long-press behavior in main screen yet
-        )
+        updateFavorites()
 
         favoriteAppsView.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
             override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
@@ -58,17 +39,51 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
-                return false // Let the RecyclerView handle other touches
+                return false
             }
 
-            override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {
-                // Not needed
-            }
-
-            override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {
-                // Not needed
-            }
+            override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
+            override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
         })
+    }
+
+    private fun updateFavorites() {
+        val apps = getInstalledApps()
+        val favorites = launcherPreferences.getFavorites()
+
+        val favoriteApps = apps.filter { app ->
+            favorites.contains(app.packageName)
+        }.map { appInfo ->
+            val customName = launcherPreferences.getCustomName(appInfo.packageName)
+            if (customName != null) {
+                appInfo.copy(name = customName)
+            } else {
+                appInfo
+            }
+        }.map { LauncherItem.App(it) }
+
+        val launcherItems = listOf(LauncherItem.Spacer) + favoriteApps +
+                if (favoriteApps.isEmpty()) {
+                    listOf(LauncherItem.AllApps)
+                } else {
+                    emptyList()
+                }
+
+        favoriteAppsView.adapter = AppAdapter(
+            items = launcherItems,
+            onItemClick = { item ->
+                when (item) {
+                    is LauncherItem.App -> launchApp(item.appInfo.packageName)
+                    LauncherItem.AllApps -> {
+                        val intent = Intent(this, AppDrawerActivity::class.java)
+                        startActivity(intent)
+                        overridePendingTransition(R.anim.slide_up, 0)
+                    }
+                    LauncherItem.Spacer -> { /* Do nothing */ }
+                }
+            },
+            onItemLongClick = { _, _ -> false }
+        )
     }
 
     private fun getInstalledApps(): List<AppInfo> {
@@ -88,5 +103,10 @@ class MainActivity : AppCompatActivity() {
     private fun launchApp(packageName: String) {
         val intent = packageManager.getLaunchIntentForPackage(packageName)
         intent?.let { startActivity(it) }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateFavorites()
     }
 }
