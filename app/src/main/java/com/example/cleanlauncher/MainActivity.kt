@@ -3,8 +3,12 @@ package com.example.cleanlauncher
 import android.content.Intent
 import android.os.Bundle
 import android.view.MotionEvent
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
@@ -15,11 +19,25 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            hide(WindowInsetsCompat.Type.statusBars())
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+
         setContentView(R.layout.activity_main)
 
         launcherPreferences = LauncherPreferences(this)
         favoriteAppsView = findViewById(R.id.favorite_apps)
         favoriteAppsView.layoutManager = LinearLayoutManager(this)
+
+        // Add divider
+        val divider = DividerItemDecoration(this, LinearLayoutManager.VERTICAL)
+        ContextCompat.getDrawable(this, R.drawable.divider)?.let {
+            divider.setDrawable(it)
+        }
+        favoriteAppsView.addItemDecoration(divider)
 
         updateFavorites()
 
@@ -51,6 +69,12 @@ class MainActivity : AppCompatActivity() {
         val apps = getInstalledApps()
         val favorites = launcherPreferences.getFavorites()
 
+        // Create clock app info
+        val clockApp = AppInfo(
+            name = "Clock",
+            packageName = "com.android.deskclock"
+        )
+
         val favoriteApps = apps.filter { app ->
             favorites.contains(app.packageName)
         }.map { appInfo ->
@@ -60,10 +84,15 @@ class MainActivity : AppCompatActivity() {
             } else {
                 appInfo
             }
-        }.map { LauncherItem.App(it) }
+        }
+            .toMutableList()
 
-        val launcherItems = listOf(LauncherItem.Spacer) + favoriteApps +
-                if (favoriteApps.isEmpty()) {
+        // Add clock to the beginning of favorites
+        favoriteApps.add(0, clockApp)
+
+        val launcherItems = listOf(LauncherItem.Spacer) +
+                favoriteApps.map { LauncherItem.App(it) } +
+                if (favoriteApps.size <= 1) {  // Only clock app
                     listOf(LauncherItem.AllApps)
                 } else {
                     emptyList()
@@ -73,7 +102,19 @@ class MainActivity : AppCompatActivity() {
             items = launcherItems,
             onItemClick = { item ->
                 when (item) {
-                    is LauncherItem.App -> launchApp(item.appInfo.packageName)
+                    is LauncherItem.App -> {
+                        if (item.appInfo.packageName == "com.android.deskclock") {
+                            try {
+                                val intent = packageManager.getLaunchIntentForPackage("com.android.deskclock")
+                                    ?: packageManager.getLaunchIntentForPackage("com.google.android.deskclock")
+                                intent?.let { startActivity(it) }
+                            } catch (e: Exception) {
+                                // Handle case where clock app isn't found
+                            }
+                        } else {
+                            launchApp(item.appInfo.packageName)
+                        }
+                    }
                     LauncherItem.AllApps -> {
                         val intent = Intent(this, AppDrawerActivity::class.java)
                         startActivity(intent)

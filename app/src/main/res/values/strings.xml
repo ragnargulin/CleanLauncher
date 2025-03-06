@@ -2,4 +2,5 @@
     <string name="app_name">Clean Launcher</string>
     <string name="title_launcher_settings">Launcher Settings</string>
     <string name="title_hidden_apps">Hidden Apps</string>
+    <string name="clock_app">Clock</string>
 </resources>
