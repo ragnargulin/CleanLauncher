@@ -3,6 +3,7 @@ package com.example.cleanlauncher
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -19,6 +20,12 @@ class SettingsActivity : AppCompatActivity() {
         launcherPreferences = LauncherPreferences(this)
         hiddenAppsView = findViewById(R.id.hidden_apps)
         hiddenAppsView.layoutManager = LinearLayoutManager(this)
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                finish()
+            }
+        })
 
         updateHiddenAppsList()
     }
@@ -71,10 +78,5 @@ class SettingsActivity : AppCompatActivity() {
                 packageName = resolveInfo.activityInfo.packageName
             )
         }.sortedBy { it.name }
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        finish()
     }
 }
