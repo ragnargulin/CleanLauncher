@@ -52,6 +52,11 @@ class AppDrawerActivity : AppCompatActivity() {
         })
     }
 
+    override fun onResume() {
+        super.onResume()
+        updateAppList()
+    }
+
     private fun updateAppList() {
         val apps = getInstalledApps().map { appInfo ->
             val customName = launcherPreferences.getCustomName(appInfo.packageName)
@@ -87,6 +92,7 @@ class AppDrawerActivity : AppCompatActivity() {
             }
             menu.add("Rename")
             menu.add("Hide App")
+            menu.add("Settings")  // Add settings option
 
             setOnMenuItemClickListener { menuItem ->
                 when (menuItem.title.toString()) {
@@ -109,9 +115,16 @@ class AppDrawerActivity : AppCompatActivity() {
                         true
                     }
                     "Hide App" -> {
+                        launcherPreferences.hideApp(app.appInfo.packageName)
                         Toast.makeText(this@AppDrawerActivity,
                             "${app.appInfo.name} hidden",
                             Toast.LENGTH_SHORT).show()
+                        updateAppList()
+                        true
+                    }
+                    "Settings" -> {
+                        val intent = Intent(this@AppDrawerActivity, SettingsActivity::class.java)
+                        startActivity(intent)
                         true
                     }
                     else -> false
@@ -157,11 +170,15 @@ class AppDrawerActivity : AppCompatActivity() {
                 name = resolveInfo.loadLabel(packageManager).toString(),
                 packageName = resolveInfo.activityInfo.packageName
             )
-        }.sortedBy { it.name }
+        }
+            .filterNot { launcherPreferences.isHidden(it.packageName) }  // Filter out hidden apps
+            .sortedBy { it.name }
     }
 
     private fun launchApp(packageName: String) {
         val intent = packageManager.getLaunchIntentForPackage(packageName)
         intent?.let { startActivity(it) }
     }
+
+
 }
