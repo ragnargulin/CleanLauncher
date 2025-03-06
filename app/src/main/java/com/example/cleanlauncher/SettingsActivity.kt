@@ -73,6 +73,7 @@ class SettingsActivity : AppCompatActivity() {
         }.sortedBy { it.name }
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         finish()
     }
