@@ -12,7 +12,7 @@ class LauncherPreferences(context: Context) {
     fun addFavorite(packageName: String, customName: String? = null) {
         val favorites = getFavorites().toMutableSet()
         favorites.add(packageName)
-        prefs.edit { putStringSet(KEY_FAVORITES, favorites) }
+        prefs.edit(commit = true) { putStringSet(KEY_FAVORITES, favorites) }
 
         if (customName != null) {
             setCustomName(packageName, customName)
@@ -22,9 +22,9 @@ class LauncherPreferences(context: Context) {
     fun removeFavorite(packageName: String) {
         val favorites = getFavorites().toMutableSet()
         favorites.remove(packageName)
-        prefs.edit {
+        prefs.edit(commit = true) {
             putStringSet(KEY_FAVORITES, favorites)
-                .remove("$KEY_CUSTOM_NAME$packageName")
+            remove("$KEY_CUSTOM_NAME$packageName")
         }
     }
 
@@ -37,7 +37,7 @@ class LauncherPreferences(context: Context) {
     }
 
     fun setCustomName(packageName: String, customName: String) {
-        prefs.edit { putString("$KEY_CUSTOM_NAME$packageName", customName) }
+        prefs.edit(commit = true) { putString("$KEY_CUSTOM_NAME$packageName", customName) }
     }
 
     fun getCustomName(packageName: String): String? {
@@ -47,16 +47,16 @@ class LauncherPreferences(context: Context) {
     fun hideApp(packageName: String) {
         val hiddenApps = getHiddenApps().toMutableSet()
         hiddenApps.add(packageName)
-        prefs.edit { putStringSet(KEY_HIDDEN, hiddenApps) }
+        prefs.edit(commit = true) { putStringSet(KEY_HIDDEN, hiddenApps) }
     }
 
     fun unhideApp(packageName: String) {
         val hiddenApps = getHiddenApps().toMutableSet()
         hiddenApps.remove(packageName)
-        prefs.edit { putStringSet(KEY_HIDDEN, hiddenApps) }
+        prefs.edit(commit = true) { putStringSet(KEY_HIDDEN, hiddenApps) }
     }
 
-    private fun getHiddenApps(): Set<String> {
+    fun getHiddenApps(): Set<String> {
         return prefs.getStringSet(KEY_HIDDEN, emptySet()) ?: emptySet()
     }
 

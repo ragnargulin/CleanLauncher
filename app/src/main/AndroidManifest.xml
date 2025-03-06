@@ -31,6 +31,12 @@
         <activity
             android:name=".AppDrawerActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.CleanLauncher" />
+
     </application>
 
 </manifest>
