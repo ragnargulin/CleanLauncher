@@ -11,22 +11,21 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import android.os.Handler
-import android.os.Looper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.cancelChildren
+import android.app.ActivityOptions
+
 
 class MainActivity : AppCompatActivity() {
     private lateinit var favoriteAppsView: RecyclerView
     private lateinit var launcherPreferences: LauncherPreferences
     private var startY = 0f
-
-    private val timeUpdateHandler = Handler(Looper.getMainLooper())
-    private val updateTimeRunnable = object : Runnable {
-        override fun run() {
-            // Only update the first item (clock)
-            favoriteAppsView.adapter?.notifyItemChanged(1)  // Position 1 because of Spacer
-            timeUpdateHandler.postDelayed(this, 1000)
-        }
-    }
+    private val scope = CoroutineScope(Dispatchers.Main + Job())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,8 +61,11 @@ class MainActivity : AppCompatActivity() {
                         val diff = e.y - startY
                         if (diff < -100) { // Swiped up
                             val intent = Intent(this@MainActivity, AppDrawerActivity::class.java)
-                            startActivity(intent)
-                            overridePendingTransition(R.anim.slide_up, 0)
+                            startActivity(intent, ActivityOptions.makeCustomAnimation(
+                                this@MainActivity,
+                                R.anim.slide_up,
+                                0
+                            ).toBundle())
                             return true
                         }
                     }
@@ -76,14 +78,41 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    private fun startTimeUpdates() {
+        scope.launch {
+            while (isActive) {
+                // Calculate delay until next minute
+                val currentTime = System.currentTimeMillis()
+                val nextMinute = currentTime - (currentTime % 60000) + 60000
+                val delayToNextMinute = nextMinute - currentTime
+
+                // Wait until next minute
+                delay(delayToNextMinute)
+
+                // Update clock
+                val adapter = favoriteAppsView.adapter
+                val items = (adapter as? AppAdapter)?.items ?: return@launch
+                val clockPosition = items.indexOfFirst { item ->
+                    item is LauncherItem.App &&
+                            (item.appInfo.packageName == "com.android.deskclock" ||
+                                    item.appInfo.packageName == "com.google.android.deskclock")
+                }
+
+                if (clockPosition != -1) {
+                    adapter.notifyItemChanged(clockPosition)
+                }
+            }
+        }
+    }
+
     private fun updateFavorites() {
         val apps = getInstalledApps()
         val favorites = launcherPreferences.getFavorites()
 
-
-
         val favoriteApps = apps.filter { app ->
-            favorites.contains(app.packageName)
+            favorites.contains(app.packageName) ||
+                    app.packageName == "com.android.deskclock" ||
+                    app.packageName == "com.google.android.deskclock"
         }.map { appInfo ->
             val customName = launcherPreferences.getCustomName(appInfo.packageName)
             if (customName != null) {
@@ -92,11 +121,10 @@ class MainActivity : AppCompatActivity() {
                 appInfo
             }
         }
-            .toMutableList()
 
         val launcherItems = listOf(LauncherItem.Spacer) +
                 favoriteApps.map { LauncherItem.App(it) } +
-                if (favoriteApps.size <= 1) {  // Only clock app
+                if (favoriteApps.isEmpty()) {
                     listOf(LauncherItem.AllApps)
                 } else {
                     emptyList()
@@ -121,13 +149,17 @@ class MainActivity : AppCompatActivity() {
                     }
                     LauncherItem.AllApps -> {
                         val intent = Intent(this, AppDrawerActivity::class.java)
-                        startActivity(intent)
-                        overridePendingTransition(R.anim.slide_up, 0)
+                        startActivity(intent, ActivityOptions.makeCustomAnimation(
+                            this,
+                            R.anim.slide_up,
+                            0
+                        ).toBundle())
                     }
                     LauncherItem.Spacer -> { /* Do nothing */ }
                 }
             },
-            onItemLongClick = { _, _ -> false }
+            onItemLongClick = { _, _ -> false },
+            isFavoritesList = true
         )
     }
 
@@ -143,7 +175,6 @@ class MainActivity : AppCompatActivity() {
                 packageName = resolveInfo.activityInfo.packageName
             )
         }.sortedBy { appInfo ->
-            // Get custom name if it exists, otherwise use default name
             val displayName = launcherPreferences.getCustomName(appInfo.packageName) ?: appInfo.name
             displayName.lowercase() // Make it case-insensitive
         }
@@ -157,5 +188,16 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updateFavorites()
+        startTimeUpdates()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        scope.coroutineContext.cancelChildren()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        scope.coroutineContext.cancelChildren()
     }
 }

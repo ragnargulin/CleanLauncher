@@ -10,9 +10,10 @@ import java.util.Date
 import java.util.Locale
 
 class AppAdapter(
-    private val items: List<LauncherItem>,
+    val items: List<LauncherItem>,
     private val onItemClick: (LauncherItem) -> Unit,
-    private val onItemLongClick: (LauncherItem, View) -> Boolean
+    private val onItemLongClick: (LauncherItem, View) -> Boolean,
+    private val isFavoritesList: Boolean = false
 ) : RecyclerView.Adapter<AppAdapter.ViewHolder>() {
 
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -49,11 +50,10 @@ class AppAdapter(
                 )
                 holder.appNameView.text = item.appInfo.name
 
-                // Show time only for clock app
-                if (item.appInfo.packageName == "com.android.deskclock" ||
-                    item.appInfo.packageName == "com.google.android.deskclock") {
-                    val time = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
-                    holder.timeView.text = time
+                // Show time only for clock app in favorites list
+                if (isFavoritesList && (item.appInfo.packageName == "com.android.deskclock" ||
+                            item.appInfo.packageName == "com.google.android.deskclock")) {
+                    holder.timeView.text = timeFormat.format(Date())
                     holder.timeView.visibility = View.VISIBLE
                 } else {
                     holder.timeView.visibility = View.GONE
@@ -67,7 +67,7 @@ class AppAdapter(
                     RecyclerView.LayoutParams.MATCH_PARENT,
                     RecyclerView.LayoutParams.WRAP_CONTENT
                 )
-                holder.appNameView.text = "All Apps"
+                holder.appNameView.text = holder.itemView.context.getString(R.string.all_apps)
                 holder.timeView.visibility = View.GONE
                 holder.itemView.setOnClickListener { onItemClick(item) }
                 holder.itemView.setOnLongClickListener(null)
