@@ -68,5 +68,22 @@ class LauncherPreferences(context: Context) {
         private const val KEY_FAVORITES = "favorites"
         private const val KEY_CUSTOM_NAME = "custom_name_"
         private const val KEY_HIDDEN = "hidden_apps"
+        private const val KEY_FONT_SIZE = "font_size"
     }
+
+    fun setFontSize(size: FontSize) {
+        prefs.edit().putString(KEY_FONT_SIZE, size.name).apply()
+    }
+
+    fun getFontSize(): FontSize {
+        val name = prefs.getString(KEY_FONT_SIZE, FontSize.MEDIUM.name)
+        return FontSize.valueOf(name ?: FontSize.MEDIUM.name)
+    }
+}
+
+enum class FontSize(val textSize: Float) {
+    SMALL(20f),
+    MEDIUM(30f),
+    LARGE(40f),
+    XLARGE(50f)
 }

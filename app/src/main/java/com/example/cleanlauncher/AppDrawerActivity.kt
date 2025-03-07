@@ -37,7 +37,7 @@ class AppDrawerActivity : AppCompatActivity() {
                     MotionEvent.ACTION_MOVE -> {
                         if (!rv.canScrollVertically(-1)) {  // Check if at top
                             val diff = e.y - startY
-                            if (diff > 100) { // Swiped down while at top
+                            if (diff > 200) { // Swiped down while at top
                                 finish()
                                 return true
                             }

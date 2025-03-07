@@ -29,6 +29,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        launcherPreferences = LauncherPreferences(this)
+
+        val fontSize = launcherPreferences.getFontSize()
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
         WindowInsetsControllerCompat(window, window.decorView).apply {
@@ -159,7 +164,9 @@ class MainActivity : AppCompatActivity() {
                 }
             },
             onItemLongClick = { _, _ -> false },
-            isFavoritesList = true
+            isFavoritesList = true,
+            fontSize = launcherPreferences.getFontSize()
+
         )
     }
 

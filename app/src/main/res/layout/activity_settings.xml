@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -13,6 +14,59 @@
         android:textSize="24sp"
         android:textStyle="bold" />
 
+    <!-- Font Size Section -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="24dp"
+        android:paddingBottom="8dp"
+        android:text="@string/title_font_size"
+        android:textSize="18sp" />
+
+    <RadioGroup
+        android:id="@+id/fontSizeGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="24dp"
+        android:orientation="vertical">
+
+        <RadioButton
+            android:id="@+id/sizeSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/font_size_small"
+            android:textSize="20sp" />
+
+        <RadioButton
+            android:id="@+id/sizeMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/font_size_medium"
+            android:textSize="30sp" />
+
+        <RadioButton
+            android:id="@+id/sizeLarge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/font_size_large"
+            android:textSize="40sp" />
+
+        <RadioButton
+            android:id="@+id/sizeXLarge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/font_size_xlarge"
+            android:textSize="50sp" />
+    </RadioGroup>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginVertical="16dp"
+        android:background="@android:color/white" />
+
+    <!-- Hidden Apps Section -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
