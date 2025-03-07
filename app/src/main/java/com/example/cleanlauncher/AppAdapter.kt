@@ -15,6 +15,8 @@ class AppAdapter(
     private val onItemLongClick: (LauncherItem, View) -> Boolean
 ) : RecyclerView.Adapter<AppAdapter.ViewHolder>() {
 
+    private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val appNameView: TextView = view.findViewById(R.id.app_name)
         val timeView: TextView = view.findViewById(R.id.time_display)

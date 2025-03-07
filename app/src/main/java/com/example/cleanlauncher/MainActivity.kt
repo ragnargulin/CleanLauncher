@@ -11,11 +11,22 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import android.os.Handler
+import android.os.Looper
 
 class MainActivity : AppCompatActivity() {
     private lateinit var favoriteAppsView: RecyclerView
     private lateinit var launcherPreferences: LauncherPreferences
     private var startY = 0f
+
+    private val timeUpdateHandler = Handler(Looper.getMainLooper())
+    private val updateTimeRunnable = object : Runnable {
+        override fun run() {
+            // Only update the first item (clock)
+            favoriteAppsView.adapter?.notifyItemChanged(1)  // Position 1 because of Spacer
+            timeUpdateHandler.postDelayed(this, 1000)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,11 +80,7 @@ class MainActivity : AppCompatActivity() {
         val apps = getInstalledApps()
         val favorites = launcherPreferences.getFavorites()
 
-        // Create clock app info
-        val clockApp = AppInfo(
-            name = "Clock",
-            packageName = "com.android.deskclock"
-        )
+
 
         val favoriteApps = apps.filter { app ->
             favorites.contains(app.packageName)
@@ -86,9 +93,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
             .toMutableList()
-
-        // Add clock to the beginning of favorites
-        favoriteApps.add(0, clockApp)
 
         val launcherItems = listOf(LauncherItem.Spacer) +
                 favoriteApps.map { LauncherItem.App(it) } +
@@ -138,7 +142,11 @@ class MainActivity : AppCompatActivity() {
                 name = resolveInfo.loadLabel(packageManager).toString(),
                 packageName = resolveInfo.activityInfo.packageName
             )
-        }.sortedBy { it.name }
+        }.sortedBy { appInfo ->
+            // Get custom name if it exists, otherwise use default name
+            val displayName = launcherPreferences.getCustomName(appInfo.packageName) ?: appInfo.name
+            displayName.lowercase() // Make it case-insensitive
+        }
     }
 
     private fun launchApp(packageName: String) {

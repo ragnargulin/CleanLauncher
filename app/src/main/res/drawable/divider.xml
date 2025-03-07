@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <size android:height="2dp" /> <!-- Make it thicker by increasing this value -->
-    <solid android:color="@android:color/white" />
-</shape>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:left="16dp" android:right="16dp">
+        <shape>
+            <size android:height="2dp" />
+            <solid android:color="#f2f2f2" />
+        </shape>
+    </item>
+</layer-list>
