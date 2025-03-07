@@ -171,9 +171,11 @@ class AppDrawerActivity : AppCompatActivity() {
                 name = resolveInfo.loadLabel(packageManager).toString(),
                 packageName = resolveInfo.activityInfo.packageName
             )
+        }.sortedBy { appInfo ->
+            // Get custom name if it exists, otherwise use default name
+            val displayName = launcherPreferences.getCustomName(appInfo.packageName) ?: appInfo.name
+            displayName.lowercase() // Make it case-insensitive
         }
-            .filterNot { launcherPreferences.isHidden(it.packageName) }  // Filter out hidden apps
-            .sortedBy { it.name }
     }
 
     private fun launchApp(packageName: String) {
