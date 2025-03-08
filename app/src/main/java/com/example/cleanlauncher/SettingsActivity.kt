@@ -15,7 +15,6 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var hiddenAppsView: RecyclerView
     private lateinit var fontSizeGroup: RadioGroup
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
@@ -25,16 +24,16 @@ class SettingsActivity : AppCompatActivity() {
         hiddenAppsView.layoutManager = LinearLayoutManager(this)
         fontSizeGroup = findViewById(R.id.fontSizeGroup)
 
-
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 finish()
             }
         })
-        setupFontSizeSelector()
 
+        setupFontSizeSelector()
         updateHiddenAppsList()
     }
+
     private fun setupFontSizeSelector() {
         // Set initial selection
         val currentSize = launcherPreferences.getFontSize()
@@ -59,19 +58,13 @@ class SettingsActivity : AppCompatActivity() {
             val intent = Intent(this, MainActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
             startActivity(intent)
-            finish()        }
+            finish()
+        }
     }
+
     private fun updateHiddenAppsList() {
-        val hiddenApps = getInstalledApps()
-            .filter { launcherPreferences.isHidden(it.packageName) }
-            .map { appInfo ->
-                val customName = launcherPreferences.getCustomName(appInfo.packageName)
-                if (customName != null) {
-                    appInfo.copy(name = customName)
-                } else {
-                    appInfo
-                }
-            }
+        val hiddenApps = AppUtils.getInstalledApps(this, launcherPreferences)
+            .filter { it.state == AppState.HIDDEN }
             .map { LauncherItem.App(it) }
 
         hiddenAppsView.adapter = AppAdapter(
@@ -82,32 +75,22 @@ class SettingsActivity : AppCompatActivity() {
                     showUnhideOption(item)
                     true
                 } else false
-            }
+            },
+            isFavoritesList = false,
+            fontSize = launcherPreferences.getFontSize()
         )
     }
 
     private fun showUnhideOption(app: LauncherItem.App) {
         AlertDialog.Builder(this)
             .setTitle("Unhide App")
-            .setMessage("Do you want to unhide ${app.appInfo.name}?")
+            .setMessage("Do you want to unhide ${app.appInfo.displayName()}?")
             .setPositiveButton("Unhide") { _, _ ->
                 launcherPreferences.unhideApp(app.appInfo.packageName)
                 updateHiddenAppsList()
-                Toast.makeText(this, "${app.appInfo.name} is now visible", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "${app.appInfo.displayName()} is now visible", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Cancel", null)
             .show()
-    }
-
-    private fun getInstalledApps(): List<AppInfo> {
-        val mainIntent = Intent(Intent.ACTION_MAIN, null)
-        mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
-        val resolveInfos = packageManager.queryIntentActivities(mainIntent, 0)
-        return resolveInfos.map { resolveInfo ->
-            AppInfo(
-                name = resolveInfo.loadLabel(packageManager).toString(),
-                packageName = resolveInfo.activityInfo.packageName
-            )
-        }.sortedBy { it.name }
     }
 }

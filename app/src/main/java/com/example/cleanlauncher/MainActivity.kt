@@ -20,7 +20,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.cancelChildren
 import android.app.ActivityOptions
 
-
 class MainActivity : AppCompatActivity() {
     private lateinit var favoriteAppsView: RecyclerView
     private lateinit var launcherPreferences: LauncherPreferences
@@ -33,17 +32,12 @@ class MainActivity : AppCompatActivity() {
 
         launcherPreferences = LauncherPreferences(this)
 
-        val fontSize = launcherPreferences.getFontSize()
-
         WindowCompat.setDecorFitsSystemWindows(window, false)
         WindowInsetsControllerCompat(window, window.decorView).apply {
             hide(WindowInsetsCompat.Type.statusBars())
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
 
-        setContentView(R.layout.activity_main)
-
-        launcherPreferences = LauncherPreferences(this)
         favoriteAppsView = findViewById(R.id.favorite_apps)
         favoriteAppsView.layoutManager = LinearLayoutManager(this)
 
@@ -111,21 +105,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateFavorites() {
-        val apps = getInstalledApps()
-        val favorites = launcherPreferences.getFavorites()
-
-        val favoriteApps = apps.filter { app ->
-            favorites.contains(app.packageName) ||
-                    app.packageName == "com.android.deskclock" ||
-                    app.packageName == "com.google.android.deskclock"
-        }.map { appInfo ->
-            val customName = launcherPreferences.getCustomName(appInfo.packageName)
-            if (customName != null) {
-                appInfo.copy(name = customName)
-            } else {
-                appInfo
-            }
-        }
+        val apps = AppUtils.getInstalledApps(this, launcherPreferences)
+        val favoriteApps = apps.filter { it.state == AppState.FAVORITE }
 
         val launcherItems = favoriteApps.map { LauncherItem.App(it) } +
                 if (favoriteApps.isEmpty()) {
@@ -148,7 +129,7 @@ class MainActivity : AppCompatActivity() {
                                 // Handle case where clock app isn't found
                             }
                         } else {
-                            launchApp(item.appInfo.packageName)
+                            AppUtils.launchApp(this, item.appInfo.packageName)
                         }
                     }
                     LauncherItem.AllApps -> {
@@ -164,30 +145,7 @@ class MainActivity : AppCompatActivity() {
             onItemLongClick = { _, _ -> false },
             isFavoritesList = true,
             fontSize = launcherPreferences.getFontSize()
-
         )
-    }
-
-    private fun getInstalledApps(): List<AppInfo> {
-        val mainIntent = Intent(Intent.ACTION_MAIN, null)
-        mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
-
-        val resolveInfos = packageManager.queryIntentActivities(mainIntent, 0)
-
-        return resolveInfos.map { resolveInfo ->
-            AppInfo(
-                name = resolveInfo.loadLabel(packageManager).toString(),
-                packageName = resolveInfo.activityInfo.packageName
-            )
-        }.sortedBy { appInfo ->
-            val displayName = launcherPreferences.getCustomName(appInfo.packageName) ?: appInfo.name
-            displayName.lowercase() // Make it case-insensitive
-        }
-    }
-
-    private fun launchApp(packageName: String) {
-        val intent = packageManager.getLaunchIntentForPackage(packageName)
-        intent?.let { startActivity(it) }
     }
 
     override fun onResume() {

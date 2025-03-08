@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 class AppDrawerActivity : AppCompatActivity() {
     private lateinit var launcherPreferences: LauncherPreferences
     private var startY = 0f
-    private lateinit var allAppsView: RecyclerView  // Made this a class property
+    private lateinit var allAppsView: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,7 +26,7 @@ class AppDrawerActivity : AppCompatActivity() {
         allAppsView = findViewById(R.id.all_apps)
         allAppsView.layoutManager = LinearLayoutManager(this)
 
-        updateAppList()  // Moved app list setup to separate method
+        updateAppList()
 
         allAppsView.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
             override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
@@ -58,20 +58,15 @@ class AppDrawerActivity : AppCompatActivity() {
     }
 
     private fun updateAppList() {
-        val apps = getInstalledApps().map { appInfo ->
-            val customName = launcherPreferences.getCustomName(appInfo.packageName)
-            if (customName != null) {
-                appInfo.copy(name = customName)
-            } else {
-                appInfo
-            }
-        }.map { LauncherItem.App(it) }
+        val apps = AppUtils.getInstalledApps(this, launcherPreferences)
+            .filter { it.state == AppState.NEITHER }
+            .map { LauncherItem.App(it) }
 
         allAppsView.adapter = AppAdapter(
             items = apps,
             onItemClick = { item ->
                 if (item is LauncherItem.App) {
-                    launchApp(item.appInfo.packageName)
+                    AppUtils.launchApp(this, item.appInfo.packageName)
                 }
             },
             onItemLongClick = { item, view ->
@@ -79,34 +74,36 @@ class AppDrawerActivity : AppCompatActivity() {
                     showAppOptions(item, view)
                     true
                 } else false
-            }
+            },
+            isFavoritesList = false,
+            fontSize = launcherPreferences.getFontSize()
         )
     }
 
     private fun showAppOptions(app: LauncherItem.App, view: View) {
         PopupMenu(this, view).apply {
-            if (launcherPreferences.isFavorite(app.appInfo.packageName)) {
+            if (launcherPreferences.getFavorites().contains(app.appInfo.packageName)) {
                 menu.add("Remove from Favorites")
             } else {
                 menu.add("Add to Favorites")
             }
             menu.add("Rename")
             menu.add("Hide App")
-            menu.add("Settings")  // Add settings option
+            menu.add("Settings")
 
             setOnMenuItemClickListener { menuItem ->
                 when (menuItem.title.toString()) {
                     "Add to Favorites" -> {
                         launcherPreferences.addFavorite(app.appInfo.packageName)
                         Toast.makeText(this@AppDrawerActivity,
-                            "${app.appInfo.name} added to favorites",
+                            "${app.appInfo.displayName()} added to favorites",
                             Toast.LENGTH_SHORT).show()
                         true
                     }
                     "Remove from Favorites" -> {
                         launcherPreferences.removeFavorite(app.appInfo.packageName)
                         Toast.makeText(this@AppDrawerActivity,
-                            "${app.appInfo.name} removed from favorites",
+                            "${app.appInfo.displayName()} removed from favorites",
                             Toast.LENGTH_SHORT).show()
                         true
                     }
@@ -117,7 +114,7 @@ class AppDrawerActivity : AppCompatActivity() {
                     "Hide App" -> {
                         launcherPreferences.hideApp(app.appInfo.packageName)
                         Toast.makeText(this@AppDrawerActivity,
-                            "${app.appInfo.name} hidden",
+                            "${app.appInfo.displayName()} hidden",
                             Toast.LENGTH_SHORT).show()
                         updateAppList()
                         true
@@ -147,7 +144,7 @@ class AppDrawerActivity : AppCompatActivity() {
                 val newName = editText.text.toString().trim()
                 if (newName.isNotEmpty()) {
                     launcherPreferences.setCustomName(app.appInfo.packageName, newName)
-                    updateAppList()  // Refresh the list after renaming
+                    updateAppList()
                 }
             }
             .setNegativeButton("Cancel", null)
@@ -159,29 +156,4 @@ class AppDrawerActivity : AppCompatActivity() {
         @Suppress("DEPRECATION")
         overridePendingTransition(0, R.anim.slide_down)
     }
-
-    private fun getInstalledApps(): List<AppInfo> {
-        val mainIntent = Intent(Intent.ACTION_MAIN, null)
-        mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
-
-        val resolveInfos = packageManager.queryIntentActivities(mainIntent, 0)
-
-        return resolveInfos.map { resolveInfo ->
-            AppInfo(
-                name = resolveInfo.loadLabel(packageManager).toString(),
-                packageName = resolveInfo.activityInfo.packageName
-            )
-        }.sortedBy { appInfo ->
-            // Get custom name if it exists, otherwise use default name
-            val displayName = launcherPreferences.getCustomName(appInfo.packageName) ?: appInfo.name
-            displayName.lowercase() // Make it case-insensitive
-        }
-    }
-
-    private fun launchApp(packageName: String) {
-        val intent = packageManager.getLaunchIntentForPackage(packageName)
-        intent?.let { startActivity(it) }
-    }
-
-
 }

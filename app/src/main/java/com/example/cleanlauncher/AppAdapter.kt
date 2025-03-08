@@ -39,7 +39,7 @@ class AppAdapter(
                     RecyclerView.LayoutParams.MATCH_PARENT,
                     RecyclerView.LayoutParams.WRAP_CONTENT
                 )
-                holder.appNameView.text = item.appInfo.name
+                holder.appNameView.text = item.appInfo.displayName()
                 holder.appNameView.textSize = fontSize.textSize
                 // Show time only for clock app in favorites list
                 if (isFavoritesList && (item.appInfo.packageName == "com.android.deskclock" ||
