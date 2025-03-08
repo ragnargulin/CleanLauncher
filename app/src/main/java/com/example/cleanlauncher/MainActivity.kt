@@ -127,8 +127,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        val launcherItems = listOf(LauncherItem.Spacer) +
-                favoriteApps.map { LauncherItem.App(it) } +
+        val launcherItems = favoriteApps.map { LauncherItem.App(it) } +
                 if (favoriteApps.isEmpty()) {
                     listOf(LauncherItem.AllApps)
                 } else {
@@ -160,7 +159,6 @@ class MainActivity : AppCompatActivity() {
                             0
                         ).toBundle())
                     }
-                    LauncherItem.Spacer -> { /* Do nothing */ }
                 }
             },
             onItemLongClick = { _, _ -> false },

@@ -15,7 +15,6 @@ class AppAdapter(
     private val onItemLongClick: (LauncherItem, View) -> Boolean,
     private val isFavoritesList: Boolean = false,
     private val fontSize: FontSize = FontSize.MEDIUM
-
 ) : RecyclerView.Adapter<AppAdapter.ViewHolder>() {
 
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -35,16 +34,6 @@ class AppAdapter(
         val item = items[position]
 
         when (item) {
-            is LauncherItem.Spacer -> {
-                holder.itemView.layoutParams = RecyclerView.LayoutParams(
-                    RecyclerView.LayoutParams.MATCH_PARENT,
-                    holder.itemView.context.resources.displayMetrics.heightPixels / 2
-                )
-                holder.appNameView.text = ""
-                holder.timeView.text = ""
-                holder.itemView.setOnClickListener(null)
-                holder.itemView.setOnLongClickListener(null)
-            }
             is LauncherItem.App -> {
                 holder.itemView.layoutParams = RecyclerView.LayoutParams(
                     RecyclerView.LayoutParams.MATCH_PARENT,
