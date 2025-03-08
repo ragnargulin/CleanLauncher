@@ -1,13 +1,6 @@
 package com.example.cleanlauncher
-
-import android.app.AlertDialog
-import android.content.Intent
 import android.os.Bundle
 import android.view.MotionEvent
-import android.view.View
-import android.widget.EditText
-import android.widget.PopupMenu
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -71,84 +64,15 @@ class AppDrawerActivity : AppCompatActivity() {
             },
             onItemLongClick = { item, view ->
                 if (item is LauncherItem.App) {
-                    showAppOptions(item, view)
+                    AppUtils.showAppOptions(this, item, view, launcherPreferences) {
+                        updateAppList()
+                    }
                     true
                 } else false
             },
             isFavoritesList = false,
             fontSize = launcherPreferences.getFontSize()
         )
-    }
-
-    private fun showAppOptions(app: LauncherItem.App, view: View) {
-        PopupMenu(this, view).apply {
-            if (launcherPreferences.getFavorites().contains(app.appInfo.packageName)) {
-                menu.add("Remove from Favorites")
-            } else {
-                menu.add("Add to Favorites")
-            }
-            menu.add("Rename")
-            menu.add("Hide App")
-            menu.add("Settings")
-
-            setOnMenuItemClickListener { menuItem ->
-                when (menuItem.title.toString()) {
-                    "Add to Favorites" -> {
-                        launcherPreferences.addFavorite(app.appInfo.packageName)
-                        Toast.makeText(this@AppDrawerActivity,
-                            "${app.appInfo.displayName()} added to favorites",
-                            Toast.LENGTH_SHORT).show()
-                        true
-                    }
-                    "Remove from Favorites" -> {
-                        launcherPreferences.removeFavorite(app.appInfo.packageName)
-                        Toast.makeText(this@AppDrawerActivity,
-                            "${app.appInfo.displayName()} removed from favorites",
-                            Toast.LENGTH_SHORT).show()
-                        true
-                    }
-                    "Rename" -> {
-                        showRenameDialog(app)
-                        true
-                    }
-                    "Hide App" -> {
-                        launcherPreferences.hideApp(app.appInfo.packageName)
-                        Toast.makeText(this@AppDrawerActivity,
-                            "${app.appInfo.displayName()} hidden",
-                            Toast.LENGTH_SHORT).show()
-                        updateAppList()
-                        true
-                    }
-                    "Settings" -> {
-                        val intent = Intent(this@AppDrawerActivity, SettingsActivity::class.java)
-                        startActivity(intent)
-                        true
-                    }
-                    else -> false
-                }
-            }
-            show()
-        }
-    }
-
-    private fun showRenameDialog(app: LauncherItem.App) {
-        val editText = EditText(this).apply {
-            setText(launcherPreferences.getCustomName(app.appInfo.packageName) ?: app.appInfo.name)
-            setSingleLine()
-        }
-
-        AlertDialog.Builder(this)
-            .setTitle("Rename App")
-            .setView(editText)
-            .setPositiveButton("OK") { _, _ ->
-                val newName = editText.text.toString().trim()
-                if (newName.isNotEmpty()) {
-                    launcherPreferences.setCustomName(app.appInfo.packageName, newName)
-                    updateAppList()
-                }
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
     }
 
     override fun finish() {

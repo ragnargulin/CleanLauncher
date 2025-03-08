@@ -120,17 +120,7 @@ class MainActivity : AppCompatActivity() {
             onItemClick = { item ->
                 when (item) {
                     is LauncherItem.App -> {
-                        if (item.appInfo.packageName == "com.android.deskclock") {
-                            try {
-                                val intent = packageManager.getLaunchIntentForPackage("com.android.deskclock")
-                                    ?: packageManager.getLaunchIntentForPackage("com.google.android.deskclock")
-                                intent?.let { startActivity(it) }
-                            } catch (e: Exception) {
-                                // Handle case where clock app isn't found
-                            }
-                        } else {
-                            AppUtils.launchApp(this, item.appInfo.packageName)
-                        }
+                        AppUtils.launchApp(this, item.appInfo.packageName)
                     }
                     LauncherItem.AllApps -> {
                         val intent = Intent(this, AppDrawerActivity::class.java)
@@ -142,7 +132,14 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             },
-            onItemLongClick = { _, _ -> false },
+            onItemLongClick = { item, view ->
+                if (item is LauncherItem.App) {
+                    AppUtils.showAppOptions(this, item, view, launcherPreferences) {
+                        updateFavorites()
+                    }
+                    true
+                } else false
+            },
             isFavoritesList = true,
             fontSize = launcherPreferences.getFontSize()
         )
