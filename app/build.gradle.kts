@@ -43,6 +43,8 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.androidx.viewpager2) // Add this line
+    implementation(libs.androidx.fragment.ktx) // Add this line
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 import androidx.core.content.edit
 
 class LauncherPreferences(context: Context) {
-    private val prefs: SharedPreferences = context.getSharedPreferences(
+    val prefs: SharedPreferences = context.getSharedPreferences(
         "launcher_prefs", Context.MODE_PRIVATE
     )
 
@@ -69,10 +69,10 @@ class LauncherPreferences(context: Context) {
     }
 
     companion object {
-        private const val KEY_FAVORITES = "favorites"
+        const val KEY_FAVORITES = "favorites"
         private const val KEY_CUSTOM_NAME = "custom_name_"
-        private const val KEY_HIDDEN = "hidden_apps"
-        private const val KEY_FONT_SIZE = "font_size"
+        const val KEY_HIDDEN = "hidden_apps"
+        const val KEY_FONT_SIZE = "font_size"
     }
 }
 
