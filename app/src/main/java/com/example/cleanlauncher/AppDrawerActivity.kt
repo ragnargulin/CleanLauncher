@@ -4,6 +4,9 @@ import android.view.MotionEvent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 
 class AppDrawerActivity : AppCompatActivity() {
     private lateinit var launcherPreferences: LauncherPreferences
@@ -14,6 +17,11 @@ class AppDrawerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_app_drawer)
 
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            hide(WindowInsetsCompat.Type.statusBars())
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
         launcherPreferences = LauncherPreferences(this)
 
         allAppsView = findViewById(R.id.all_apps)

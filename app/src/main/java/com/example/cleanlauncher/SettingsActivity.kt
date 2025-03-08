@@ -9,6 +9,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.widget.RadioGroup
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 
 class SettingsActivity : AppCompatActivity() {
     private lateinit var launcherPreferences: LauncherPreferences
@@ -23,7 +26,11 @@ class SettingsActivity : AppCompatActivity() {
         hiddenAppsView = findViewById(R.id.hidden_apps)
         hiddenAppsView.layoutManager = LinearLayoutManager(this)
         fontSizeGroup = findViewById(R.id.fontSizeGroup)
-
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            hide(WindowInsetsCompat.Type.statusBars())
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 finish()
