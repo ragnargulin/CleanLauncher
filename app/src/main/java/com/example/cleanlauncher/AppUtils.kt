@@ -3,6 +3,8 @@ package com.example.cleanlauncher
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import android.view.View
 import android.widget.EditText
 import android.widget.PopupMenu
@@ -53,6 +55,7 @@ object AppUtils {
             }
             menu.add("Rename")
             menu.add("Hide App")
+            menu.add("App Info")
 
             setOnMenuItemClickListener { menuItem ->
                 when (menuItem.title.toString()) {
@@ -78,12 +81,23 @@ object AppUtils {
                         updateList()
                         true
                     }
+                    "App Info" -> {
+                        openAppInfo(context, app.appInfo.packageName)
+                        true
+                    }
 
                     else -> false
                 }
             }
             show()
         }
+    }
+
+    private fun openAppInfo(context: Context, packageName: String) {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.fromParts("package", packageName, null)
+        }
+        context.startActivity(intent)
     }
 
     private fun showRenameDialog(context: Context, app: LauncherItem.App, launcherPreferences: LauncherPreferences, updateList: () -> Unit) {
