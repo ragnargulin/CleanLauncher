@@ -31,9 +31,7 @@ class AppAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = items[position]
-
-        when (item) {
+        when (val item = items[position]) {
             is LauncherItem.App -> {
                 holder.itemView.layoutParams = RecyclerView.LayoutParams(
                     RecyclerView.LayoutParams.MATCH_PARENT,

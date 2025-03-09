@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 import androidx.core.content.edit
 
 class LauncherPreferences(context: Context) {
-    val prefs: SharedPreferences = context.getSharedPreferences(
+    private val prefs: SharedPreferences = context.getSharedPreferences(
         "launcher_prefs", Context.MODE_PRIVATE
     )
 
@@ -23,23 +23,9 @@ class LauncherPreferences(context: Context) {
         prefs.edit(commit = true) { putStringSet(KEY_FAVORITES, favorites) }
     }
 
-    // Get the set of favorite apps
-    fun getFavorites(): Set<String> {
-        return prefs.getStringSet(KEY_FAVORITES, emptySet()) ?: emptySet()
-    }
-
-    // Set a custom name for an app
-    fun setCustomName(packageName: String, customName: String) {
-        prefs.edit(commit = true) { putString("$KEY_CUSTOM_NAME$packageName", customName) }
-    }
-
-    // Get the custom name for an app
-    fun getCustomName(packageName: String): String? {
-        return prefs.getString("$KEY_CUSTOM_NAME$packageName", null)
-    }
-
     // Hide an app
     fun hideApp(packageName: String) {
+        removeFavorite(packageName)  // Ensure it's not a favorite
         val hiddenApps = getHiddenApps().toMutableSet()
         hiddenApps.add(packageName)
         prefs.edit(commit = true) { putStringSet(KEY_HIDDEN, hiddenApps) }
@@ -52,9 +38,24 @@ class LauncherPreferences(context: Context) {
         prefs.edit(commit = true) { putStringSet(KEY_HIDDEN, hiddenApps) }
     }
 
+    // Get the set of favorite apps
+    fun getFavorites(): Set<String> {
+        return prefs.getStringSet(KEY_FAVORITES, emptySet()) ?: emptySet()
+    }
+
     // Get the set of hidden apps
     fun getHiddenApps(): Set<String> {
         return prefs.getStringSet(KEY_HIDDEN, emptySet()) ?: emptySet()
+    }
+
+    // Set a custom name for an app
+    fun setCustomName(packageName: String, customName: String) {
+        prefs.edit(commit = true) { putString("$KEY_CUSTOM_NAME$packageName", customName) }
+    }
+
+    // Get the custom name for an app
+    fun getCustomName(packageName: String): String? {
+        return prefs.getString("$KEY_CUSTOM_NAME$packageName", null)
     }
 
     // Set the font size preference
