@@ -2,7 +2,6 @@ package com.example.cleanlauncher
 
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -22,7 +21,6 @@ class HomeFragment : Fragment() {
 
     private lateinit var favoriteAppsView: RecyclerView
     private lateinit var launcherPreferences: LauncherPreferences
-    private var startY = 0f
     private val scope = CoroutineScope(Dispatchers.Main + Job())
 
     override fun onCreateView(
@@ -50,25 +48,7 @@ class HomeFragment : Fragment() {
 
         updateFavorites()
 
-        favoriteAppsView.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
-            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
-                when (e.action) {
-                    MotionEvent.ACTION_DOWN -> {
-                        startY = e.y
-                    }
-                    MotionEvent.ACTION_MOVE -> {
-                        val diff = e.y - startY
-                        if (diff < -100) { // Swiped up
-                            // Handle swipe up if needed
-                        }
-                    }
-                }
-                return false
-            }
-
-            override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
-            override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
-        })
+        // No need for touch listener since ViewPager2 handles navigation
     }
 
     fun updateFontSize() {

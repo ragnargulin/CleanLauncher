@@ -1,6 +1,5 @@
 package com.example.cleanlauncher
 import android.os.Bundle
-import android.view.MotionEvent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -10,7 +9,6 @@ import androidx.core.view.WindowInsetsControllerCompat
 
 class AppDrawerActivity : AppCompatActivity() {
     private lateinit var launcherPreferences: LauncherPreferences
-    private var startY = 0f
     private lateinit var allAppsView: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,31 +24,11 @@ class AppDrawerActivity : AppCompatActivity() {
 
         allAppsView = findViewById(R.id.all_apps)
         allAppsView.layoutManager = LinearLayoutManager(this)
+        allAppsView.isNestedScrollingEnabled = true
+
+
 
         updateAppList()
-
-        allAppsView.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
-            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
-                when (e.action) {
-                    MotionEvent.ACTION_DOWN -> {
-                        startY = e.y
-                    }
-                    MotionEvent.ACTION_MOVE -> {
-                        if (!rv.canScrollVertically(-1)) {  // Check if at top
-                            val diff = e.y - startY
-                            if (diff > 200) { // Swiped down while at top
-                                finish()
-                                return true
-                            }
-                        }
-                    }
-                }
-                return false
-            }
-
-            override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
-            override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
-        })
     }
 
     override fun onResume() {

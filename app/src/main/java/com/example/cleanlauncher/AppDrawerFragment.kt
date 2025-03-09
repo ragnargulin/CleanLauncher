@@ -2,6 +2,7 @@ package com.example.cleanlauncher
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
@@ -28,6 +29,34 @@ class AppDrawerFragment : Fragment() {
         allAppsView.layoutManager = LinearLayoutManager(context)
 
         updateAppList()
+
+        // Add touch listener to handle swipe gestures
+        allAppsView.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
+            private var startY = 0f
+
+            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                when (e.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        startY = e.y
+                        // Disable ViewPager2 input initially
+                        (activity as? MainActivity)?.viewPager?.isUserInputEnabled = false
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        val diffY = e.y - startY
+                        // Enable ViewPager2 only if swiping down and at the top of the RecyclerView
+                        if (diffY > 0 && !rv.canScrollVertically(-1)) {
+                            (activity as? MainActivity)?.viewPager?.isUserInputEnabled = true
+                            return false
+                        }
+                    }
+
+                }
+                return false
+            }
+
+            override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
+            override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
+        })
     }
 
     fun updateFontSize() {

@@ -12,7 +12,8 @@ import androidx.viewpager2.widget.ViewPager2
 class MainActivity : AppCompatActivity() {
 
     private lateinit var launcherPreferences: LauncherPreferences
-    private lateinit var viewPager: ViewPager2
+    lateinit var viewPager: ViewPager2
+
 
     private val preferenceChangeListener =
         SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
@@ -30,6 +31,7 @@ class MainActivity : AppCompatActivity() {
         viewPager = findViewById(R.id.viewPager)
         val adapter = ScreenSlidePagerAdapter(this)
         viewPager.adapter = adapter
+        viewPager.orientation = ViewPager2.ORIENTATION_VERTICAL
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
         WindowInsetsControllerCompat(window, window.decorView).apply {
