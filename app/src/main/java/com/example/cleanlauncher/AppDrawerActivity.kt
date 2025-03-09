@@ -84,10 +84,4 @@ class AppDrawerActivity : AppCompatActivity() {
             fontSize = launcherPreferences.getFontSize()
         )
     }
-
-    override fun finish() {
-        super.finish()
-        @Suppress("DEPRECATION")
-        overridePendingTransition(0, R.anim.slide_down)
-    }
 }
