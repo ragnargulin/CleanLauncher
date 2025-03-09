@@ -59,7 +59,7 @@ class LauncherPreferences(context: Context) {
 
     // Set the font size preference
     fun setFontSize(size: FontSize) {
-        prefs.edit().putString(KEY_FONT_SIZE, size.name).apply()
+        prefs.edit { putString(KEY_FONT_SIZE, size.name) }
     }
 
     // Get the font size preference

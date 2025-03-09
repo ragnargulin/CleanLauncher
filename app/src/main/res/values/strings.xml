@@ -9,4 +9,6 @@
     <string name="font_size_medium">Medium</string>
     <string name="font_size_large">Large</string>
     <string name="font_size_xlarge">Extra Large</string>
+    <string name="settings">settings</string>
+    <string name="menuIcon">●</string>
 </resources>

@@ -5,9 +5,12 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import android.content.Intent
+import android.widget.TextView
 
 class AppDrawerFragment : Fragment() {
 
@@ -28,6 +31,12 @@ class AppDrawerFragment : Fragment() {
         allAppsView = view.findViewById(R.id.all_apps)
         allAppsView.layoutManager = LinearLayoutManager(context)
         allAppsView.isNestedScrollingEnabled = true
+
+        val settingsIcon: TextView = view.findViewById(R.id.settings_icon)
+        settingsIcon.setOnClickListener {
+            val intent = Intent(requireContext(), SettingsActivity::class.java)
+            startActivity(intent)
+        }
 
         updateAppList()
 

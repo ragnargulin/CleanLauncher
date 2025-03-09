@@ -53,7 +53,6 @@ object AppUtils {
             }
             menu.add("Rename")
             menu.add("Hide App")
-            menu.add("Settings")
 
             setOnMenuItemClickListener { menuItem ->
                 when (menuItem.title.toString()) {
@@ -79,11 +78,7 @@ object AppUtils {
                         updateList()
                         true
                     }
-                    "Settings" -> {
-                        val intent = Intent(context, SettingsActivity::class.java)
-                        context.startActivity(intent)
-                        true
-                    }
+
                     else -> false
                 }
             }
