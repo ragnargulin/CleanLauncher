@@ -36,6 +36,7 @@ class MainActivity : AppCompatActivity() {
             hide(WindowInsetsCompat.Type.statusBars())
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
+        viewPager.setCurrentItem(HOME_SCREEN_INDEX, false)
 
         launcherPreferences.prefs.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
     }
@@ -43,6 +44,11 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         launcherPreferences.prefs.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewPager.setCurrentItem(HOME_SCREEN_INDEX, false)
     }
 
     private inner class ScreenSlidePagerAdapter(fa: AppCompatActivity) : FragmentStateAdapter(fa) {
@@ -59,5 +65,9 @@ class MainActivity : AppCompatActivity() {
             (supportFragmentManager.findFragmentByTag("f0") as? HomeFragment)?.updateFontSize()
             (supportFragmentManager.findFragmentByTag("f1") as? AppDrawerFragment)?.updateFontSize()
         }
+    }
+
+    companion object {
+        private const val HOME_SCREEN_INDEX = 0 // Change this to your actual home screen index
     }
 }

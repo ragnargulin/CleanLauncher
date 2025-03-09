@@ -56,6 +56,8 @@ class AppDrawerActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updateAppList()
+        allAppsView.scrollToPosition(0)
+
     }
 
     private fun updateAppList() {
