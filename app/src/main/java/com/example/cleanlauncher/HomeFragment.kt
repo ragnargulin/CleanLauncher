@@ -12,10 +12,10 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.cancelChildren
 
 class HomeFragment : Fragment() {
 
@@ -47,13 +47,8 @@ class HomeFragment : Fragment() {
         favoriteAppsView.addItemDecoration(divider)
 
         updateFavorites()
-
-        // No need for touch listener since ViewPager2 handles navigation
     }
 
-    fun updateFontSize() {
-        updateFavorites()
-    }
 
     private fun updateFavorites() {
         val fontSize = launcherPreferences.getFontSize()
@@ -101,15 +96,12 @@ class HomeFragment : Fragment() {
     private fun startTimeUpdates() {
         scope.launch {
             while (isActive) {
-                // Calculate delay until next minute
                 val currentTime = System.currentTimeMillis()
                 val nextMinute = currentTime - (currentTime % 60000) + 60000
                 val delayToNextMinute = nextMinute - currentTime
 
-                // Wait until next minute
                 delay(delayToNextMinute)
 
-                // Update clock
                 val adapter = favoriteAppsView.adapter
                 val items = (adapter as? AppAdapter)?.items ?: return@launch
                 val clockPosition = items.indexOfFirst { item ->

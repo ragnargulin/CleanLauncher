@@ -27,6 +27,7 @@ class AppDrawerFragment : Fragment() {
         launcherPreferences = LauncherPreferences(requireContext())
         allAppsView = view.findViewById(R.id.all_apps)
         allAppsView.layoutManager = LinearLayoutManager(context)
+        allAppsView.isNestedScrollingEnabled = true
 
         updateAppList()
 
@@ -49,7 +50,6 @@ class AppDrawerFragment : Fragment() {
                             return false
                         }
                     }
-
                 }
                 return false
             }
@@ -59,8 +59,10 @@ class AppDrawerFragment : Fragment() {
         })
     }
 
-    fun updateFontSize() {
+    override fun onResume() {
+        super.onResume()
         updateAppList()
+        allAppsView.scrollToPosition(0)
     }
 
     private fun updateAppList() {
@@ -88,4 +90,6 @@ class AppDrawerFragment : Fragment() {
             fontSize = fontSize
         )
     }
+
+
 }
