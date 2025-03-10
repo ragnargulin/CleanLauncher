@@ -22,6 +22,8 @@ class HomeFragment : Fragment() {
     private lateinit var favoriteAppsView: RecyclerView
     private lateinit var launcherPreferences: LauncherPreferences
     private val scope = CoroutineScope(Dispatchers.Main + Job())
+    private var cachedFavoriteApps: List<LauncherItem>? = null // Change type to List<LauncherItem>
+    private var lastKnownFontSize: FontSize? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -46,12 +48,32 @@ class HomeFragment : Fragment() {
         }
         favoriteAppsView.addItemDecoration(divider)
 
-        updateFavorites()
+        // Initialize last known font size
+        lastKnownFontSize = launcherPreferences.getFontSize()
+        updateFavorites(lastKnownFontSize!!)
     }
 
+    override fun onResume() {
+        super.onResume()
 
-    private fun updateFavorites() {
-        val fontSize = launcherPreferences.getFontSize()
+        // Check if the font size has changed
+        val currentFontSize = launcherPreferences.getFontSize()
+        if (currentFontSize != lastKnownFontSize) {
+            lastKnownFontSize = currentFontSize
+            cachedFavoriteApps = null // Invalidate cache
+            updateFavorites(currentFontSize)
+        } else {
+            updateFavorites(currentFontSize)
+        }
+        startTimeUpdates()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        scope.coroutineContext.cancelChildren()
+    }
+
+    private fun updateFavorites(fontSize: FontSize) {
         val apps = AppUtils.getInstalledApps(requireContext(), launcherPreferences)
         val favoriteApps = apps.filter { it.state == AppState.FAVORITE }
 
@@ -61,6 +83,16 @@ class HomeFragment : Fragment() {
                 } else {
                     emptyList()
                 }
+
+        // Check if the favorite apps list has changed
+        if (cachedFavoriteApps == launcherItems && favoriteAppsView.adapter != null) {
+            // If the list is unchanged, just update the font size
+            (favoriteAppsView.adapter as AppAdapter).notifyDataSetChanged()
+            return
+        }
+
+        // Update the cache
+        cachedFavoriteApps = launcherItems
 
         favoriteAppsView.adapter = AppAdapter(
             items = launcherItems,
@@ -72,7 +104,8 @@ class HomeFragment : Fragment() {
             onItemLongClick = { item, view ->
                 if (item is LauncherItem.App) {
                     AppUtils.showAppOptions(requireContext(), item, view, launcherPreferences) {
-                        updateFavorites()
+                        cachedFavoriteApps = null // Invalidate cache on app options change
+                        updateFavorites(fontSize)
                     }
                     true
                 } else false
@@ -80,17 +113,6 @@ class HomeFragment : Fragment() {
             isFavoritesList = true,
             fontSize = fontSize
         )
-    }
-
-    override fun onResume() {
-        super.onResume()
-        updateFavorites()
-        startTimeUpdates()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        scope.coroutineContext.cancelChildren()
     }
 
     private fun startTimeUpdates() {

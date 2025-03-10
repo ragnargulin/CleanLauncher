@@ -15,6 +15,8 @@ class AppDrawerFragment : Fragment() {
 
     private lateinit var allAppsView: RecyclerView
     private lateinit var launcherPreferences: LauncherPreferences
+    private var cachedAppList: List<LauncherItem.App>? = null
+    private var lastKnownFontSize: FontSize? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -37,8 +39,8 @@ class AppDrawerFragment : Fragment() {
             startActivity(intent)
         }
 
-        updateAppList()
-
+        lastKnownFontSize = launcherPreferences.getFontSize()
+        updateAppList(lastKnownFontSize!!)
         // Add touch listener to handle swipe gestures
         allAppsView.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
             private var startY = 0f
@@ -69,15 +71,33 @@ class AppDrawerFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        updateAppList()
+
+        // Check if the font size has changed
+        val currentFontSize = launcherPreferences.getFontSize()
+        if (currentFontSize != lastKnownFontSize) {
+            lastKnownFontSize = currentFontSize
+            cachedAppList = null // Invalidate cache
+            updateAppList(currentFontSize)
+        } else {
+            updateAppList(currentFontSize)
+        }
         allAppsView.scrollToPosition(0)
     }
 
-    private fun updateAppList() {
-        val fontSize = launcherPreferences.getFontSize()
+    private fun updateAppList(fontSize: FontSize) {
         val apps = AppUtils.getInstalledApps(requireContext(), launcherPreferences)
             .filter { it.state == AppState.NEITHER }
             .map { LauncherItem.App(it) }
+
+        // Check if the app list has changed
+        if (cachedAppList == apps && allAppsView.adapter != null) {
+            // If the list is unchanged, just update the font size
+            (allAppsView.adapter as AppAdapter).notifyDataSetChanged()
+            return
+        }
+
+        // Update the cache
+        cachedAppList = apps
 
         allAppsView.adapter = AppAdapter(
             items = apps,
@@ -89,7 +109,8 @@ class AppDrawerFragment : Fragment() {
             onItemLongClick = { item, view ->
                 if (item is LauncherItem.App) {
                     AppUtils.showAppOptions(requireContext(), item, view, launcherPreferences) {
-                        updateAppList()
+                        cachedAppList = null // Invalidate cache on app options change
+                        updateAppList(fontSize)
                     }
                     true
                 } else false
@@ -98,6 +119,5 @@ class AppDrawerFragment : Fragment() {
             fontSize = fontSize
         )
     }
-
 
 }
