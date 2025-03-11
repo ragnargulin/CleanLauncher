@@ -8,11 +8,12 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.content.Intent
+import android.util.TypedValue
+import android.widget.ImageButton
 
 class AppDrawerFragment : Fragment() {
 
@@ -38,14 +39,17 @@ class AppDrawerFragment : Fragment() {
         allAppsView.layoutManager = LinearLayoutManager(context)
         allAppsView.isNestedScrollingEnabled = true
 
-        val settingsIcon: TextView = view.findViewById(R.id.settings_icon)
+        val settingsIcon: ImageButton = view.findViewById(R.id.settings_icon)
         settingsIcon.setOnClickListener {
             val intent = Intent(requireContext(), SettingsActivity::class.java)
             startActivity(intent)
         }
 
+
+
         lastKnownFontSize = launcherPreferences.getFontSize()
         updateAppList(lastKnownFontSize!!)
+        searchBar.setTextSize(TypedValue.COMPLEX_UNIT_SP, lastKnownFontSize!!.textSize)
 
         searchBar.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
@@ -97,6 +101,7 @@ class AppDrawerFragment : Fragment() {
             updateAppList(currentFontSize)
         }
         allAppsView.scrollToPosition(0)
+        searchBar.setText("")
     }
 
     private fun filterApps(query: String) {
@@ -108,6 +113,9 @@ class AppDrawerFragment : Fragment() {
     }
 
     private fun updateAppList(fontSize: FontSize) {
+
+        searchBar.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize.textSize)
+
         val apps = AppUtils.getInstalledApps(requireContext(), launcherPreferences)
             .filter { it.state == AppState.NEITHER }
             .map { LauncherItem.App(it) }

@@ -1,29 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <!-- Settings Icon using a "+" sign -->
-    <TextView
-        android:id="@+id/settings_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:layout_margin="16dp"
-        android:text="@string/menuIcon"
-        android:textSize="24sp"
-        android:contentDescription="@string/settings" />
-
-    <!-- Search Bar for filtering apps -->
-    <EditText
-        android:id="@+id/search_bar"
+    <!-- Container for the search bar and settings icon -->
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="8dp"
-        android:hint="Search apps"
-        android:inputType="text"
-        android:padding="8dp" />
+        android:background="@drawable/edit_text_border">
+
+        <!-- Search Bar for filtering apps -->
+        <EditText
+            android:id="@+id/search_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autofillHints=""
+            android:hint="@string/search_apps"
+            android:inputType="text"
+            android:paddingEnd="48dp"
+        android:padding="8dp"
+        android:background="@android:color/transparent" />
+
+        <!-- Settings Icon using a "+" sign -->
+        <ImageButton
+            android:id="@+id/settings_icon"
+            android:padding="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="end|center_vertical"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/circle_shape"
+        android:contentDescription="@string/settings" />
+    </FrameLayout>
 
     <!-- RecyclerView for apps -->
     <androidx.recyclerview.widget.RecyclerView

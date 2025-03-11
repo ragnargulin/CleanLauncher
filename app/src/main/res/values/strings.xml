@@ -12,4 +12,5 @@
     <string name="settings">settings</string>
     <string name="menuIcon">●</string>
     <string name="show_status_bar">Show Status Bar</string>
+    <string name="search_apps">Search apps</string>
 </resources>
