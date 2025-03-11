@@ -10,7 +10,7 @@ import java.util.Date
 import java.util.Locale
 
 class AppAdapter(
-    val items: List<LauncherItem>,
+    var items: List<LauncherItem>,
     private val onItemClick: (LauncherItem) -> Unit,
     private val onItemLongClick: (LauncherItem, View) -> Boolean,
     private val isFavoritesList: Boolean = false,
@@ -67,4 +67,10 @@ class AppAdapter(
     }
 
     override fun getItemCount() = items.size
+
+    // Method to update the list of items
+    fun updateList(newItems: List<LauncherItem>) {
+        items = newItems
+        notifyDataSetChanged()
+    }
 }

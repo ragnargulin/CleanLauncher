@@ -1,19 +1,23 @@
 package com.example.cleanlauncher
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.content.Intent
-import android.widget.TextView
 
 class AppDrawerFragment : Fragment() {
 
     private lateinit var allAppsView: RecyclerView
+    private lateinit var searchBar: EditText
     private lateinit var launcherPreferences: LauncherPreferences
     private var cachedAppList: List<LauncherItem.App>? = null
     private var lastKnownFontSize: FontSize? = null
@@ -30,6 +34,7 @@ class AppDrawerFragment : Fragment() {
 
         launcherPreferences = LauncherPreferences(requireContext())
         allAppsView = view.findViewById(R.id.all_apps)
+        searchBar = view.findViewById(R.id.search_bar)
         allAppsView.layoutManager = LinearLayoutManager(context)
         allAppsView.isNestedScrollingEnabled = true
 
@@ -41,6 +46,16 @@ class AppDrawerFragment : Fragment() {
 
         lastKnownFontSize = launcherPreferences.getFontSize()
         updateAppList(lastKnownFontSize!!)
+
+        searchBar.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                filterApps(s.toString())
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+
         // Add touch listener to handle swipe gestures
         allAppsView.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
             private var startY = 0f
@@ -84,17 +99,18 @@ class AppDrawerFragment : Fragment() {
         allAppsView.scrollToPosition(0)
     }
 
+    private fun filterApps(query: String) {
+        val filteredList = cachedAppList?.filter {
+            it.appInfo.name.contains(query, ignoreCase = true)
+        } ?: emptyList()
+
+        (allAppsView.adapter as? AppAdapter)?.updateList(filteredList)
+    }
+
     private fun updateAppList(fontSize: FontSize) {
         val apps = AppUtils.getInstalledApps(requireContext(), launcherPreferences)
             .filter { it.state == AppState.NEITHER }
             .map { LauncherItem.App(it) }
-
-        // Check if the app list has changed
-        if (cachedAppList == apps && allAppsView.adapter != null) {
-            // If the list is unchanged, just update the font size
-            (allAppsView.adapter as AppAdapter).notifyDataSetChanged()
-            return
-        }
 
         // Update the cache
         cachedAppList = apps
@@ -119,5 +135,4 @@ class AppDrawerFragment : Fragment() {
             fontSize = fontSize
         )
     }
-
 }
