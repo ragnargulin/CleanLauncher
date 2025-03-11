@@ -3,13 +3,12 @@ package com.example.cleanlauncher
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.widget.RadioGroup
-import androidx.core.view.WindowCompat
+import android.widget.Switch
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 
@@ -17,6 +16,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var launcherPreferences: LauncherPreferences
     private lateinit var hiddenAppsView: RecyclerView
     private lateinit var fontSizeGroup: RadioGroup
+    private lateinit var statusBarToggle: Switch
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,19 +26,30 @@ class SettingsActivity : AppCompatActivity() {
         hiddenAppsView = findViewById(R.id.hidden_apps)
         hiddenAppsView.layoutManager = LinearLayoutManager(this)
         fontSizeGroup = findViewById(R.id.fontSizeGroup)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        WindowInsetsControllerCompat(window, window.decorView).apply {
-            hide(WindowInsetsCompat.Type.statusBars())
-            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        statusBarToggle = findViewById(R.id.statusBarToggle)
+
+        // Set initial status bar visibility based on preferences
+        val isStatusBarVisible = launcherPreferences.isStatusBarVisible()
+        statusBarToggle.isChecked = isStatusBarVisible
+        setStatusBarVisibility(isStatusBarVisible)
+
+        statusBarToggle.setOnCheckedChangeListener { _, isChecked ->
+            launcherPreferences.setStatusBarVisible(isChecked)
+            setStatusBarVisibility(isChecked)
         }
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                finish()
-            }
-        })
 
         setupFontSizeSelector()
         updateHiddenAppsList()
+    }
+
+    private fun setStatusBarVisibility(isVisible: Boolean) {
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            if (isVisible) {
+                show(WindowInsetsCompat.Type.statusBars())
+            } else {
+                hide(WindowInsetsCompat.Type.statusBars())
+            }
+        }
     }
 
     private fun setupFontSizeSelector() {

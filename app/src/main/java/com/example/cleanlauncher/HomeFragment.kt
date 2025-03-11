@@ -22,7 +22,7 @@ class HomeFragment : Fragment() {
     private lateinit var favoriteAppsView: RecyclerView
     private lateinit var launcherPreferences: LauncherPreferences
     private val scope = CoroutineScope(Dispatchers.Main + Job())
-    private var cachedFavoriteApps: List<LauncherItem>? = null // Change type to List<LauncherItem>
+    private var cachedFavoriteApps: List<LauncherItem>? = null
     private var lastKnownFontSize: FontSize? = null
 
     override fun onCreateView(

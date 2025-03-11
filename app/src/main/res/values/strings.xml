@@ -11,4 +11,5 @@
     <string name="font_size_xlarge">Extra Large</string>
     <string name="settings">settings</string>
     <string name="menuIcon">●</string>
+    <string name="show_status_bar">Show Status Bar</string>
 </resources>

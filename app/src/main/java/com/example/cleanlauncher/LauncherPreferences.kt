@@ -9,6 +9,14 @@ class LauncherPreferences(context: Context) {
         "launcher_prefs", Context.MODE_PRIVATE
     )
 
+    fun isStatusBarVisible(): Boolean {
+        return prefs.getBoolean(KEY_STATUS_BAR_VISIBLE, true)
+    }
+
+    fun setStatusBarVisible(isVisible: Boolean) {
+        prefs.edit { putBoolean(KEY_STATUS_BAR_VISIBLE, isVisible) }
+    }
+
     // Add an app to favorites
     fun addFavorite(packageName: String) {
         val favorites = getFavorites().toMutableSet()
@@ -74,6 +82,8 @@ class LauncherPreferences(context: Context) {
         private const val KEY_CUSTOM_NAME = "custom_name_"
         const val KEY_HIDDEN = "hidden_apps"
         const val KEY_FONT_SIZE = "font_size"
+        const val KEY_STATUS_BAR_VISIBLE = "status_bar_visible"
+
     }
 }
 
