@@ -83,13 +83,6 @@ class LauncherPreferences(context: Context) {
         const val KEY_HIDDEN = "hidden_apps"
         const val KEY_FONT_SIZE = "font_size"
         const val KEY_STATUS_BAR_VISIBLE = "status_bar_visible"
-
     }
 }
 
-enum class FontSize(val textSize: Float) {
-    SMALL(20f),
-    MEDIUM(30f),
-    LARGE(40f),
-    XLARGE(50f)
-}
