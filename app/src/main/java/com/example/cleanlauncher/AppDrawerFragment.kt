@@ -100,7 +100,6 @@ class AppDrawerFragment : Fragment() {
         } else {
             updateAppList(currentFontSize)
         }
-        allAppsView.scrollToPosition(0)
         searchBar.setText("")
     }
 
