@@ -35,7 +35,7 @@ class SettingsActivity : AppCompatActivity() {
 
         launcherPreferences = LauncherPreferences(this)
         hiddenAppsView = findViewById(R.id.hidden_apps)
-        hiddenAppsHeader = findViewById(R.id.hidden_apps_header)
+        hiddenAppsHeader = findViewById(R.id.all_apps_header)
         fontSizeGroup = findViewById(R.id.fontSizeGroup)
         statusBarToggle = findViewById(R.id.statusBarToggle)
         themeToggle = findViewById(R.id.themeToggle)
