@@ -1,7 +1,13 @@
 package com.example.cleanlauncher
 
+import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
+import android.view.View
+import android.widget.EditText
+import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -108,16 +114,116 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    fun showAppOptions(
+        context: Context,
+        app: LauncherItem.App,
+        view: View,
+        launcherPreferences: LauncherPreferences,
+        updateList: () -> Unit
+    ) {
+        PopupMenu(context, view).apply {
+            // Check if the app is a favorite
+            if (launcherPreferences.getFavorites().contains(app.appInfo.packageName)) {
+                menu.add("Remove from Favorites")
+            } else {
+                menu.add("Add to Favorites")
+            }
+
+            // Check if the app is hidden
+            if (app.appInfo.state == AppState.HIDDEN) {
+                menu.add("Unhide App")
+            } else {
+                menu.add("Hide App")
+            }
+
+            menu.add("Rename")
+            menu.add("App Info")
+
+            setOnMenuItemClickListener { menuItem ->
+                when (menuItem.title.toString()) {
+                    "Add to Favorites" -> {
+                        launcherPreferences.addFavorite(app.appInfo.packageName)
+                        Toast.makeText(context, "${app.appInfo.displayName()} added to favorites", Toast.LENGTH_SHORT).show()
+                        updateList()
+                        true
+                    }
+                    "Remove from Favorites" -> {
+                        launcherPreferences.removeFavorite(app.appInfo.packageName)
+                        Toast.makeText(context, "${app.appInfo.displayName()} removed from favorites", Toast.LENGTH_SHORT).show()
+                        updateList()
+                        true
+                    }
+                    "Rename" -> {
+                        showRenameDialog(context, app, launcherPreferences, updateList)
+                        true
+                    }
+                    "Hide App" -> {
+                        launcherPreferences.hideApp(app.appInfo.packageName)
+                        Toast.makeText(context, "${app.appInfo.displayName()} hidden", Toast.LENGTH_SHORT).show()
+                        updateList()
+                        true
+                    }
+                    "Unhide App" -> {
+                        launcherPreferences.unhideApp(app.appInfo.packageName)
+                        Toast.makeText(context, "${app.appInfo.displayName()} is now visible", Toast.LENGTH_SHORT).show()
+                        updateList()
+                        true
+                    }
+                    "App Info" -> {
+                        openAppInfo(context, app.appInfo.packageName)
+                        true
+                    }
+                    else -> false
+                }
+            }
+            show()
+        }
+    }
+
+    private fun openAppInfo(context: Context, packageName: String) {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.fromParts("package", packageName, null)
+        }
+        context.startActivity(intent)
+    }
+
+    private fun showRenameDialog(context: Context, app: LauncherItem.App, launcherPreferences: LauncherPreferences, updateList: () -> Unit) {
+        val editText = EditText(context).apply {
+            setText(launcherPreferences.getCustomName(app.appInfo.packageName) ?: app.appInfo.name)
+            setSingleLine()
+        }
+
+        android.app.AlertDialog.Builder(context)
+            .setTitle("Rename App")
+            .setView(editText)
+            .setPositiveButton("OK") { _, _ ->
+                val newName = editText.text.toString().trim()
+                if (newName.isNotEmpty()) {
+                    launcherPreferences.setCustomName(app.appInfo.packageName, newName)
+                    updateList()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
     private fun updateHiddenAppsList() {
+        // Retrieve all installed apps without filtering
         val allApps = AppUtils.getInstalledApps(this, launcherPreferences)
-            .map { LauncherItem.App(it) } // No filtering, include all apps
+            .map { LauncherItem.App(it) }
 
         hiddenAppsView.adapter = AppAdapter(
             items = allApps,
             onItemClick = { /* Do nothing */ },
-            onItemLongClick = { item, _ ->
+            onItemLongClick = { item, view ->
                 if (item is LauncherItem.App) {
-                    showUnhideOption(item)
+                    showAppOptions(
+                        context = this,
+                        app = item,
+                        view = view,
+                        launcherPreferences = launcherPreferences,
+                        updateList = { updateHiddenAppsList() } // Refresh the list after changes
+                    )
                     true
                 } else false
             },
@@ -128,16 +234,5 @@ class SettingsActivity : AppCompatActivity() {
         )
     }
 
-    private fun showUnhideOption(app: LauncherItem.App) {
-        AlertDialog.Builder(this)
-            .setTitle("Unhide App")
-            .setMessage("Do you want to unhide ${app.appInfo.displayName()}?")
-            .setPositiveButton("Unhide") { _, _ ->
-                launcherPreferences.unhideApp(app.appInfo.packageName)
-                updateHiddenAppsList()
-                Toast.makeText(this, "${app.appInfo.displayName()} is now visible", Toast.LENGTH_SHORT).show()
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
+
 }
