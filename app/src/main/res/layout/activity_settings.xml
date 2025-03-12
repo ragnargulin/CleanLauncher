@@ -1,139 +1,143 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:paddingTop="32dp"
-    >
+    android:fillViewport="true">
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="24dp"
-        android:text="@string/title_launcher_settings"
-        android:textSize="40sp"
-        android:textStyle="bold" />
-
-    <!-- Font Size Section -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingHorizontal="24dp"
-        android:paddingBottom="8dp"
-        android:text="@string/title_font_size"
-        android:textSize="30sp" />
-
-    <RadioGroup
-        android:id="@+id/fontSizeGroup"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingHorizontal="24dp"
         android:orientation="vertical"
-        android:textColor="?android:textColor">
+        android:paddingTop="32dp">
 
-        <RadioButton
-            android:id="@+id/sizeSmall"
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/font_size_small"
-            android:textSize="20sp"
-            android:textColor="?android:textColor" />
+            android:padding="24dp"
+            android:text="@string/title_launcher_settings"
+            android:textSize="40sp"
+            android:textStyle="bold" />
 
-        <RadioButton
-            android:id="@+id/sizeMedium"
+        <!-- Font Size Section -->
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/font_size_medium"
+            android:paddingHorizontal="24dp"
+            android:paddingBottom="8dp"
+            android:text="@string/title_font_size"
+            android:textSize="30sp" />
+
+        <RadioGroup
+            android:id="@+id/fontSizeGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="24dp"
+            android:orientation="vertical"
+            android:textColor="?android:textColor">
+
+            <RadioButton
+                android:id="@+id/sizeSmall"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/font_size_small"
+                android:textSize="20sp"
+                android:textColor="?android:textColor" />
+
+            <RadioButton
+                android:id="@+id/sizeMedium"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/font_size_medium"
+                android:textSize="30sp"
+                android:textColor="?android:textColor" />
+
+            <RadioButton
+                android:id="@+id/sizeLarge"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/font_size_large"
+                android:textSize="40sp"
+                android:textColor="?android:textColor" />
+
+            <RadioButton
+                android:id="@+id/sizeXLarge"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/font_size_xlarge"
+                android:textSize="50sp"
+                android:textColor="?android:textColor" />
+        </RadioGroup>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@drawable/divider" />
+
+        <!-- Toggle to hide/show status bar -->
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/statusBarToggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/show_status_bar"
+            android:padding="12dp"
             android:textSize="30sp"
             android:textColor="?android:textColor" />
 
-        <RadioButton
-            android:id="@+id/sizeLarge"
-            android:layout_width="match_parent"
+        <!-- Toggle for dark mode -->
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/themeToggle"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/font_size_large"
-            android:textSize="40sp"
+            android:text="@string/dark_light"
+            android:padding="12dp"
+            android:textSize="30sp"
             android:textColor="?android:textColor" />
 
-        <RadioButton
-            android:id="@+id/sizeXLarge"
+        <!-- Toggle for lowercase/uppercase -->
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/lowerCaseToggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/lowercase_uppercase"
+            android:padding="12dp"
+            android:textSize="30sp"
+            android:textColor="?android:textColor" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_marginHorizontal="24dp"
+            android:layout_marginVertical="16dp"
+            android:textColor="?android:textColor" />
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@drawable/divider" />
+
+        <!-- Hidden Apps Section Header -->
+        <TextView
+            android:id="@+id/hidden_apps_header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/font_size_xlarge"
-            android:textSize="50sp"
-            android:textColor="?android:textColor" />
-    </RadioGroup>
+            android:paddingHorizontal="24dp"
+            android:paddingBottom="8dp"
+            android:text="@string/title_hidden_apps"
+            android:textSize="30sp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true" />
 
-    <!-- Divider -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:background="@drawable/divider"
-        />
+        <!-- Hidden Apps List -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/hidden_apps"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="24dp"
+            android:visibility="gone" />
 
-    <!-- Toggle to hide/show status bar -->
-    <com.google.android.material.switchmaterial.SwitchMaterial
-        android:id="@+id/statusBarToggle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/show_status_bar"
-        android:padding="12dp"
-        android:textSize="30sp"
-        android:textColor="?android:textColor"
-        />
-
-    <!-- Toggle for dark mode -->
-    <com.google.android.material.switchmaterial.SwitchMaterial
-        android:id="@+id/themeToggle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/dark_light"
-        android:padding="12dp"
-        android:textSize="30sp"
-        android:textColor="?android:textColor"
-        />
-
-    <!-- Toggle for lowercase/uppercase -->
-
-    <com.google.android.material.switchmaterial.SwitchMaterial
-        android:id="@+id/lowerCaseToggle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/lowercase_uppercase"
-        android:padding="12dp"
-        android:textSize="30sp"
-        android:textColor="?android:textColor"
-        />
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:layout_marginHorizontal="24dp"
-        android:layout_marginVertical="16dp"
-        android:textColor="?android:textColor" />
-
-    <!-- Divider -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:background="@drawable/divider"
-        />
-    <!-- Hidden Apps Section -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingHorizontal="24dp"
-        android:paddingBottom="8dp"
-        android:text="@string/title_hidden_apps"
-        android:textSize="30sp" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/hidden_apps"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:paddingHorizontal="24dp" />
-
-
-
-</LinearLayout>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

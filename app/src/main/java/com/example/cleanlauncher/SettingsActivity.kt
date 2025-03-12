@@ -8,21 +8,22 @@ import android.provider.Settings
 import android.view.View
 import android.widget.EditText
 import android.widget.PopupMenu
+import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.widget.RadioGroup
-import androidx.appcompat.app.AppCompatDelegate
 import com.google.android.material.switchmaterial.SwitchMaterial
-
+import androidx.core.view.isVisible
 
 class SettingsActivity : AppCompatActivity() {
     private lateinit var launcherPreferences: LauncherPreferences
     private lateinit var hiddenAppsView: RecyclerView
+    private lateinit var hiddenAppsHeader: TextView
     private lateinit var fontSizeGroup: RadioGroup
     private lateinit var statusBarToggle: SwitchMaterial
     private lateinit var themeToggle: SwitchMaterial
@@ -34,11 +35,13 @@ class SettingsActivity : AppCompatActivity() {
 
         launcherPreferences = LauncherPreferences(this)
         hiddenAppsView = findViewById(R.id.hidden_apps)
-        hiddenAppsView.layoutManager = LinearLayoutManager(this)
+        hiddenAppsHeader = findViewById(R.id.hidden_apps_header)
         fontSizeGroup = findViewById(R.id.fontSizeGroup)
         statusBarToggle = findViewById(R.id.statusBarToggle)
         themeToggle = findViewById(R.id.themeToggle)
         lowerCaseToggle = findViewById(R.id.lowerCaseToggle)
+
+        hiddenAppsView.layoutManager = LinearLayoutManager(this)
 
         // Set initial status bar visibility based on preferences
         val isStatusBarVisible = launcherPreferences.isStatusBarVisible()
@@ -73,6 +76,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         setupFontSizeSelector()
+        setupHiddenAppsCollapsible()
         updateHiddenAppsList()
     }
 
@@ -114,7 +118,17 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    fun showAppOptions(
+    private fun setupHiddenAppsCollapsible() {
+        hiddenAppsHeader.setOnClickListener {
+            if (hiddenAppsView.isVisible) {
+                hiddenAppsView.visibility = View.GONE
+            } else {
+                hiddenAppsView.visibility = View.VISIBLE
+            }
+        }
+    }
+
+    private fun showAppOptions(
         context: Context,
         app: LauncherItem.App,
         view: View,
@@ -233,6 +247,4 @@ class SettingsActivity : AppCompatActivity() {
             showAppState = true // Show app state in this list
         )
     }
-
-
 }

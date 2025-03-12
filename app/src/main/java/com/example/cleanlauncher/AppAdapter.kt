@@ -42,9 +42,17 @@ class AppAdapter(
                     RecyclerView.LayoutParams.WRAP_CONTENT
                 )
 
+                // Determine the app state symbol
+                val stateSymbol = when (item.appInfo.state) {
+                    AppState.FAVORITE -> "\u2764" // Unicode for heart
+                    AppState.HIDDEN -> "\uD83D\uDC7B" // Unicode for ghost
+                    AppState.NEITHER -> "" // No symbol for NEITHER
+                }
+
+                // Set the app state text and visibility based on showAppState flag
                 if (showAppState) {
-                    holder.appStateView.text = item.appInfo.state.toString()
-                    holder.appStateView.visibility = View.VISIBLE
+                    holder.appStateView.text = stateSymbol
+                    holder.appStateView.visibility = if (stateSymbol.isNotEmpty()) View.VISIBLE else View.GONE
                 } else {
                     holder.appStateView.visibility = View.GONE
                 }

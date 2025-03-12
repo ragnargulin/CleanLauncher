@@ -102,13 +102,7 @@ class HomeFragment : Fragment() {
                 }
             },
             onItemLongClick = { item, view ->
-                if (item is LauncherItem.App) {
-                    AppUtils.showAppOptions(requireContext(), item, view, launcherPreferences) {
-                        cachedFavoriteApps = null // Invalidate cache on app options change
-                        updateFavorites(fontSize)
-                    }
-                    true
-                } else false
+                item is LauncherItem.App
             },
             isFavoritesList = true,
             fontSize = fontSize,

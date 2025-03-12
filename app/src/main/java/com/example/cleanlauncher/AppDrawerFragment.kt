@@ -134,13 +134,7 @@ class AppDrawerFragment : Fragment() {
                 }
             },
             onItemLongClick = { item, view ->
-                if (item is LauncherItem.App) {
-                    AppUtils.showAppOptions(requireContext(), item, view, launcherPreferences) {
-                        cachedAppList = null // Invalidate cache on app options change
-                        updateAppList(fontSize)
-                    }
-                    true
-                } else false
+                item is LauncherItem.App
             },
             isFavoritesList = false,
             fontSize = fontSize,
