@@ -109,12 +109,11 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun updateHiddenAppsList() {
-        val hiddenApps = AppUtils.getInstalledApps(this, launcherPreferences)
-            .filter { it.state == AppState.HIDDEN }
-            .map { LauncherItem.App(it) }
+        val allApps = AppUtils.getInstalledApps(this, launcherPreferences)
+            .map { LauncherItem.App(it) } // No filtering, include all apps
 
         hiddenAppsView.adapter = AppAdapter(
-            items = hiddenApps,
+            items = allApps,
             onItemClick = { /* Do nothing */ },
             onItemLongClick = { item, _ ->
                 if (item is LauncherItem.App) {
@@ -124,7 +123,8 @@ class SettingsActivity : AppCompatActivity() {
             },
             isFavoritesList = false,
             fontSize = launcherPreferences.getFontSize(),
-            launcherPreferences = launcherPreferences
+            launcherPreferences = launcherPreferences,
+            showAppState = true // Show app state in this list
         )
     }
 

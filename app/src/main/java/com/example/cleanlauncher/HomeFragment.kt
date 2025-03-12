@@ -112,7 +112,8 @@ class HomeFragment : Fragment() {
             },
             isFavoritesList = true,
             fontSize = fontSize,
-            launcherPreferences = launcherPreferences
+            launcherPreferences = launcherPreferences,
+            showAppState = false
         )
     }
 

@@ -10,3 +10,9 @@ data class AppInfo(
         return customName ?: name
     }
 }
+
+enum class AppState {
+    FAVORITE,
+    HIDDEN,
+    NEITHER
+}

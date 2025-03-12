@@ -15,13 +15,16 @@ class AppAdapter(
     private val onItemLongClick: (LauncherItem, View) -> Boolean,
     private val isFavoritesList: Boolean = false,
     private val fontSize: FontSize = FontSize.MEDIUM,
-    private val launcherPreferences: LauncherPreferences // Add this parameter
+    private val launcherPreferences: LauncherPreferences,
+    private val showAppState: Boolean = false
+
 ) : RecyclerView.Adapter<AppAdapter.ViewHolder>() {
 
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val appNameView: TextView = view.findViewById(R.id.app_name)
+        val appStateView: TextView = view.findViewById(R.id.app_state)
         val timeView: TextView = view.findViewById(R.id.time_display)
     }
 
@@ -38,6 +41,13 @@ class AppAdapter(
                     RecyclerView.LayoutParams.MATCH_PARENT,
                     RecyclerView.LayoutParams.WRAP_CONTENT
                 )
+
+                if (showAppState) {
+                    holder.appStateView.text = item.appInfo.state.toString()
+                    holder.appStateView.visibility = View.VISIBLE
+                } else {
+                    holder.appStateView.visibility = View.GONE
+                }
 
                 // Get the user's preference for app name text style
                 val textStyle = launcherPreferences.getAppNameTextStyle()

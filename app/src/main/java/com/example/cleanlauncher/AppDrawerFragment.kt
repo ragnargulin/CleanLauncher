@@ -144,7 +144,8 @@ class AppDrawerFragment : Fragment() {
             },
             isFavoritesList = false,
             fontSize = fontSize,
-            launcherPreferences = launcherPreferences
+            launcherPreferences = launcherPreferences,
+            showAppState = false
         )
     }
 }
