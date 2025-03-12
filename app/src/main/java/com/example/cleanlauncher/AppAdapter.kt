@@ -14,7 +14,8 @@ class AppAdapter(
     private val onItemClick: (LauncherItem) -> Unit,
     private val onItemLongClick: (LauncherItem, View) -> Boolean,
     private val isFavoritesList: Boolean = false,
-    private val fontSize: FontSize = FontSize.MEDIUM
+    private val fontSize: FontSize = FontSize.MEDIUM,
+    private val launcherPreferences: LauncherPreferences // Add this parameter
 ) : RecyclerView.Adapter<AppAdapter.ViewHolder>() {
 
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -37,8 +38,19 @@ class AppAdapter(
                     RecyclerView.LayoutParams.MATCH_PARENT,
                     RecyclerView.LayoutParams.WRAP_CONTENT
                 )
-                holder.appNameView.text = item.appInfo.displayName()
+
+                // Get the user's preference for app name text style
+                val textStyle = launcherPreferences.getAppNameTextStyle()
+                val appName = item.appInfo.displayName()
+
+                // Apply the text style
+                holder.appNameView.text = when (textStyle) {
+                    AppNameTextStyle.ALL_LOWERCASE -> appName.lowercase(Locale.getDefault())
+                    AppNameTextStyle.LEADING_UPPERCASE -> appName.replaceFirstChar { it.uppercase(Locale.getDefault()) }
+                }
+
                 holder.appNameView.textSize = fontSize.textSize
+
                 // Show time only for clock app in favorites list
                 if (isFavoritesList && (item.appInfo.packageName == "com.android.deskclock" ||
                             item.appInfo.packageName == "com.google.android.deskclock")) {

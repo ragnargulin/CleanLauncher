@@ -84,6 +84,15 @@
         android:textColor="?android:textColor"
         />
 
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/lowerCaseToggle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/lowercase_uppercase"
+        android:padding="24dp"
+        android:textColor="?android:textColor"
+        />
+
     <View
         android:layout_width="match_parent"
         android:layout_height="2dp"

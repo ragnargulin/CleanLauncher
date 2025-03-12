@@ -20,6 +20,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var fontSizeGroup: RadioGroup
     private lateinit var statusBarToggle: SwitchMaterial
     private lateinit var themeToggle: SwitchMaterial
+    private lateinit var lowerCaseToggle: SwitchMaterial
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,6 +32,7 @@ class SettingsActivity : AppCompatActivity() {
         fontSizeGroup = findViewById(R.id.fontSizeGroup)
         statusBarToggle = findViewById(R.id.statusBarToggle)
         themeToggle = findViewById(R.id.themeToggle)
+        lowerCaseToggle = findViewById(R.id.lowerCaseToggle)
 
         // Set initial status bar visibility based on preferences
         val isStatusBarVisible = launcherPreferences.isStatusBarVisible()
@@ -52,6 +54,16 @@ class SettingsActivity : AppCompatActivity() {
                 if (isChecked) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
             )
             recreate() // Recreate the activity to apply the new theme
+        }
+
+        // Set initial app name text style toggle state
+        lowerCaseToggle.isChecked = launcherPreferences.getAppNameTextStyle() == AppNameTextStyle.LEADING_UPPERCASE
+
+        // Handle app name text style toggle changes
+        lowerCaseToggle.setOnCheckedChangeListener { _, isChecked ->
+            val newStyle = if (isChecked) AppNameTextStyle.LEADING_UPPERCASE else AppNameTextStyle.ALL_LOWERCASE
+            launcherPreferences.setAppNameTextStyle(newStyle)
+            // Optionally, refresh the UI or notify the adapter if needed
         }
 
         setupFontSizeSelector()
@@ -111,7 +123,8 @@ class SettingsActivity : AppCompatActivity() {
                 } else false
             },
             isFavoritesList = false,
-            fontSize = launcherPreferences.getFontSize()
+            fontSize = launcherPreferences.getFontSize(),
+            launcherPreferences = launcherPreferences
         )
     }
 

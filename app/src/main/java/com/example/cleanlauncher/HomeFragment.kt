@@ -111,7 +111,8 @@ class HomeFragment : Fragment() {
                 } else false
             },
             isFavoritesList = true,
-            fontSize = fontSize
+            fontSize = fontSize,
+            launcherPreferences = launcherPreferences
         )
     }
 

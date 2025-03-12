@@ -88,6 +88,16 @@ class LauncherPreferences(context: Context) {
         return prefs.getBoolean(KEY_DARK_MODE, true) // Default to dark mode
     }
 
+    // Set the text style preference for app names
+    fun setAppNameTextStyle(style: AppNameTextStyle) {
+        prefs.edit { putString(KEY_APP_NAME_TEXT_STYLE, style.name) }
+    }
+
+    // Get the text style preference for app names
+    fun getAppNameTextStyle(): AppNameTextStyle {
+        val name = prefs.getString(KEY_APP_NAME_TEXT_STYLE, AppNameTextStyle.LEADING_UPPERCASE.name)
+        return AppNameTextStyle.valueOf(name ?: AppNameTextStyle.LEADING_UPPERCASE.name)
+    }
 
     companion object {
         const val KEY_FAVORITES = "favorites"
@@ -96,6 +106,8 @@ class LauncherPreferences(context: Context) {
         const val KEY_FONT_SIZE = "font_size"
         const val KEY_STATUS_BAR_VISIBLE = "status_bar_visible"
         const val KEY_DARK_MODE = "dark_mode"
+        const val KEY_APP_NAME_TEXT_STYLE = "app_name_text_style"
+
     }
 }
 

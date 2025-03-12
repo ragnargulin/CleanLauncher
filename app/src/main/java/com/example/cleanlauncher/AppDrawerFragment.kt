@@ -140,7 +140,8 @@ class AppDrawerFragment : Fragment() {
                 } else false
             },
             isFavoritesList = false,
-            fontSize = fontSize
+            fontSize = fontSize,
+            launcherPreferences = launcherPreferences
         )
     }
 }

@@ -13,3 +13,8 @@ enum class FontSize(val textSize: Float) {
     LARGE(40f),
     XLARGE(50f)
 }
+
+enum class AppNameTextStyle {
+    ALL_LOWERCASE,
+    LEADING_UPPERCASE
+}
