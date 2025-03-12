@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.view.View
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
@@ -24,6 +25,9 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var launcherPreferences: LauncherPreferences
     private lateinit var hiddenAppsView: RecyclerView
     private lateinit var hiddenAppsHeader: TextView
+    private lateinit var togglersHeader: TextView
+    private lateinit var togglersContainer: LinearLayout
+    private lateinit var fontSizeHeader: TextView
     private lateinit var fontSizeGroup: RadioGroup
     private lateinit var statusBarToggle: SwitchMaterial
     private lateinit var themeToggle: SwitchMaterial
@@ -36,10 +40,13 @@ class SettingsActivity : AppCompatActivity() {
         launcherPreferences = LauncherPreferences(this)
         hiddenAppsView = findViewById(R.id.hidden_apps)
         hiddenAppsHeader = findViewById(R.id.all_apps_header)
+        fontSizeHeader = findViewById(R.id.font_size_header)
         fontSizeGroup = findViewById(R.id.fontSizeGroup)
         statusBarToggle = findViewById(R.id.statusBarToggle)
         themeToggle = findViewById(R.id.themeToggle)
         lowerCaseToggle = findViewById(R.id.lowerCaseToggle)
+        togglersHeader = findViewById(R.id.toggles_header)
+        togglersContainer = findViewById(R.id.toggles_container)
 
         hiddenAppsView.layoutManager = LinearLayoutManager(this)
 
@@ -76,7 +83,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         setupFontSizeSelector()
-        setupHiddenAppsCollapsible()
+        setupCollapsibleSections()
         updateHiddenAppsList()
     }
 
@@ -118,13 +125,19 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupHiddenAppsCollapsible() {
+    private fun setupCollapsibleSections() {
+        // Setup collapsible for font size section
+        fontSizeHeader.setOnClickListener {
+            fontSizeGroup.visibility = if (fontSizeGroup.isVisible) View.GONE else View.VISIBLE
+        }
+
+        // Setup collapsible for hidden apps section
+        togglersHeader.setOnClickListener {
+            togglersContainer.visibility = if (togglersContainer.isVisible) View.GONE else View.VISIBLE
+        }
+        // Setup collapsible for hidden apps section
         hiddenAppsHeader.setOnClickListener {
-            if (hiddenAppsView.isVisible) {
-                hiddenAppsView.visibility = View.GONE
-            } else {
-                hiddenAppsView.visibility = View.VISIBLE
-            }
+            hiddenAppsView.visibility = if (hiddenAppsView.isVisible) View.GONE else View.VISIBLE
         }
     }
 

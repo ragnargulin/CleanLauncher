@@ -17,21 +17,22 @@ class LauncherPreferences(context: Context) {
         prefs.edit { putBoolean(KEY_STATUS_BAR_VISIBLE, isVisible) }
     }
 
-    // Add an app to favorites
     fun addFavorite(packageName: String) {
         val favorites = getFavorites().toMutableSet()
         favorites.add(packageName)
         prefs.edit(commit = true) { putStringSet(KEY_FAVORITES, favorites) }
     }
 
-    // Remove an app from favorites
     fun removeFavorite(packageName: String) {
         val favorites = getFavorites().toMutableSet()
         favorites.remove(packageName)
         prefs.edit(commit = true) { putStringSet(KEY_FAVORITES, favorites) }
     }
 
-    // Hide an app
+    fun getFavorites(): Set<String> {
+        return prefs.getStringSet(KEY_FAVORITES, emptySet()) ?: emptySet()
+    }
+
     fun hideApp(packageName: String) {
         removeFavorite(packageName)  // Ensure it's not a favorite
         val hiddenApps = getHiddenApps().toMutableSet()
@@ -39,61 +40,46 @@ class LauncherPreferences(context: Context) {
         prefs.edit(commit = true) { putStringSet(KEY_HIDDEN, hiddenApps) }
     }
 
-    // Unhide an app
     fun unhideApp(packageName: String) {
         val hiddenApps = getHiddenApps().toMutableSet()
         hiddenApps.remove(packageName)
         prefs.edit(commit = true) { putStringSet(KEY_HIDDEN, hiddenApps) }
     }
 
-    // Get the set of favorite apps
-    fun getFavorites(): Set<String> {
-        return prefs.getStringSet(KEY_FAVORITES, emptySet()) ?: emptySet()
-    }
-
-    // Get the set of hidden apps
     fun getHiddenApps(): Set<String> {
         return prefs.getStringSet(KEY_HIDDEN, emptySet()) ?: emptySet()
     }
 
-    // Set a custom name for an app
     fun setCustomName(packageName: String, customName: String) {
         prefs.edit(commit = true) { putString("$KEY_CUSTOM_NAME$packageName", customName) }
     }
 
-    // Get the custom name for an app
     fun getCustomName(packageName: String): String? {
         return prefs.getString("$KEY_CUSTOM_NAME$packageName", null)
     }
 
-    // Set the font size preference
     fun setFontSize(size: FontSize) {
         prefs.edit { putString(KEY_FONT_SIZE, size.name) }
     }
 
-    // Get the font size preference
     fun getFontSize(): FontSize {
         val name = prefs.getString(KEY_FONT_SIZE, FontSize.MEDIUM.name)
         return FontSize.valueOf(name ?: FontSize.MEDIUM.name)
     }
 
-    // Toggle dark/light mode
     fun toggleTheme() {
         val isDarkMode = isDarkMode()
         prefs.edit { putBoolean(KEY_DARK_MODE, !isDarkMode) }
     }
 
-    // Check if dark mode is enabled
     fun isDarkMode(): Boolean {
         return prefs.getBoolean(KEY_DARK_MODE, true) // Default to dark mode
     }
 
-    // Set the text style preference for app names
     fun setAppNameTextStyle(style: AppNameTextStyle) {
         prefs.edit { putString(KEY_APP_NAME_TEXT_STYLE, style.name) }
     }
 
-    // Get the text style preference for app names
     fun getAppNameTextStyle(): AppNameTextStyle {
         val name = prefs.getString(KEY_APP_NAME_TEXT_STYLE, AppNameTextStyle.LEADING_UPPERCASE.name)
         return AppNameTextStyle.valueOf(name ?: AppNameTextStyle.LEADING_UPPERCASE.name)
@@ -107,7 +93,6 @@ class LauncherPreferences(context: Context) {
         const val KEY_STATUS_BAR_VISIBLE = "status_bar_visible"
         const val KEY_DARK_MODE = "dark_mode"
         const val KEY_APP_NAME_TEXT_STYLE = "app_name_text_style"
-
     }
 }
 
