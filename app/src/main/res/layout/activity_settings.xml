@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:padding="24dp"
         android:text="@string/title_launcher_settings"
-        android:textSize="24sp"
+        android:textSize="40sp"
         android:textStyle="bold" />
 
     <!-- Font Size Section -->
@@ -22,7 +22,7 @@
         android:paddingHorizontal="24dp"
         android:paddingBottom="8dp"
         android:text="@string/title_font_size"
-        android:textSize="18sp" />
+        android:textSize="30sp" />
 
     <RadioGroup
         android:id="@+id/fontSizeGroup"
@@ -65,31 +65,44 @@
             android:textColor="?android:textColor" />
     </RadioGroup>
 
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@drawable/divider"
+        />
+
     <!-- Toggle to hide/show status bar -->
     <com.google.android.material.switchmaterial.SwitchMaterial
         android:id="@+id/statusBarToggle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/show_status_bar"
-        android:padding="24dp"
+        android:padding="12dp"
+        android:textSize="30sp"
         android:textColor="?android:textColor"
         />
 
+    <!-- Toggle for dark mode -->
     <com.google.android.material.switchmaterial.SwitchMaterial
         android:id="@+id/themeToggle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/dark_light"
-        android:padding="24dp"
+        android:padding="12dp"
+        android:textSize="30sp"
         android:textColor="?android:textColor"
         />
+
+    <!-- Toggle for lowercase/uppercase -->
 
     <com.google.android.material.switchmaterial.SwitchMaterial
         android:id="@+id/lowerCaseToggle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/lowercase_uppercase"
-        android:padding="24dp"
+        android:padding="12dp"
+        android:textSize="30sp"
         android:textColor="?android:textColor"
         />
 
@@ -100,6 +113,12 @@
         android:layout_marginVertical="16dp"
         android:textColor="?android:textColor" />
 
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@drawable/divider"
+        />
     <!-- Hidden Apps Section -->
     <TextView
         android:layout_width="match_parent"
@@ -107,7 +126,7 @@
         android:paddingHorizontal="24dp"
         android:paddingBottom="8dp"
         android:text="@string/title_hidden_apps"
-        android:textSize="18sp" />
+        android:textSize="30sp" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/hidden_apps"

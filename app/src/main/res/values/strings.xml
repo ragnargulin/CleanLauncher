@@ -10,9 +10,8 @@
     <string name="font_size_large">Large</string>
     <string name="font_size_xlarge">Extra Large</string>
     <string name="settings">settings</string>
-    <string name="menuIcon">●</string>
     <string name="show_status_bar">Show Status Bar</string>
     <string name="search_apps">Search apps</string>
     <string name="dark_light">Dark / Light</string>
-    <string name="lowercase_uppercase">Lowercase / Uppercase</string>
+    <string name="lowercase_uppercase">aa / Aa</string>
 </resources>
