@@ -41,6 +41,16 @@ class MainActivity : AppCompatActivity() {
         setStatusBarVisibility(launcherPreferences.isStatusBarVisible())
 
         viewPager.setCurrentItem(HOME_SCREEN_INDEX, false)
+        viewPager.isUserInputEnabled = true
+
+    }
+
+    override fun onResume(){
+        super.onResume()
+        viewPager.setCurrentItem(HOME_SCREEN_INDEX, false)
+        viewPager.isUserInputEnabled = true
+        val appDrawerFragment = supportFragmentManager.findFragmentByTag("f1") as? AppDrawerFragment
+        appDrawerFragment?.scrollToTop()
     }
 
     private fun setStatusBarVisibility(isVisible: Boolean) {

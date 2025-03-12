@@ -104,6 +104,10 @@ class AppDrawerFragment : Fragment() {
         searchBar.setText("")
     }
 
+    fun scrollToTop() {
+        allAppsView.scrollToPosition(0)
+    }
+
     private fun filterApps(query: String) {
         val filteredList = cachedAppList?.filter {
             it.appInfo.name.contains(query, ignoreCase = true)
