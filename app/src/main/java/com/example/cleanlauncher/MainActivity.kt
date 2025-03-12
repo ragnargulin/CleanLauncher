@@ -2,6 +2,7 @@ package com.example.cleanlauncher
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -20,6 +21,9 @@ class MainActivity : AppCompatActivity() {
 
         launcherPreferences = LauncherPreferences(this)
 
+        AppCompatDelegate.setDefaultNightMode(
+            if (launcherPreferences.isDarkMode()) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
+        )
         viewPager = findViewById(R.id.viewPager)
         viewPager.adapter = ScreenSlidePagerAdapter(this)
         viewPager.orientation = ViewPager2.ORIENTATION_VERTICAL

@@ -5,18 +5,21 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.widget.RadioGroup
-import android.widget.Switch
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
+import androidx.appcompat.app.AppCompatDelegate
+import com.google.android.material.switchmaterial.SwitchMaterial
+
 
 class SettingsActivity : AppCompatActivity() {
     private lateinit var launcherPreferences: LauncherPreferences
     private lateinit var hiddenAppsView: RecyclerView
     private lateinit var fontSizeGroup: RadioGroup
-    private lateinit var statusBarToggle: Switch
+    private lateinit var statusBarToggle: SwitchMaterial
+    private lateinit var themeToggle: SwitchMaterial
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,6 +30,7 @@ class SettingsActivity : AppCompatActivity() {
         hiddenAppsView.layoutManager = LinearLayoutManager(this)
         fontSizeGroup = findViewById(R.id.fontSizeGroup)
         statusBarToggle = findViewById(R.id.statusBarToggle)
+        themeToggle = findViewById(R.id.themeToggle)
 
         // Set initial status bar visibility based on preferences
         val isStatusBarVisible = launcherPreferences.isStatusBarVisible()
@@ -36,6 +40,18 @@ class SettingsActivity : AppCompatActivity() {
         statusBarToggle.setOnCheckedChangeListener { _, isChecked ->
             launcherPreferences.setStatusBarVisible(isChecked)
             setStatusBarVisibility(isChecked)
+        }
+
+        // Set initial theme toggle state
+        themeToggle.isChecked = launcherPreferences.isDarkMode()
+
+        // Handle theme toggle changes
+        themeToggle.setOnCheckedChangeListener { _, isChecked ->
+            launcherPreferences.toggleTheme()
+            AppCompatDelegate.setDefaultNightMode(
+                if (isChecked) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
+            )
+            recreate() // Recreate the activity to apply the new theme
         }
 
         setupFontSizeSelector()

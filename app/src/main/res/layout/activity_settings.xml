@@ -29,50 +29,67 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingHorizontal="24dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:textColor="?android:textColor">
 
         <RadioButton
             android:id="@+id/sizeSmall"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/font_size_small"
-            android:textSize="20sp" />
+            android:textSize="20sp"
+            android:textColor="?android:textColor" />
 
         <RadioButton
             android:id="@+id/sizeMedium"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/font_size_medium"
-            android:textSize="30sp" />
+            android:textSize="30sp"
+            android:textColor="?android:textColor" />
 
         <RadioButton
             android:id="@+id/sizeLarge"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/font_size_large"
-            android:textSize="40sp" />
+            android:textSize="40sp"
+            android:textColor="?android:textColor" />
 
         <RadioButton
             android:id="@+id/sizeXLarge"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/font_size_xlarge"
-            android:textSize="50sp" />
+            android:textSize="50sp"
+            android:textColor="?android:textColor" />
     </RadioGroup>
 
     <!-- Toggle to hide/show status bar -->
-    <Switch
+    <com.google.android.material.switchmaterial.SwitchMaterial
         android:id="@+id/statusBarToggle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/show_status_bar" />
+        android:text="@string/show_status_bar"
+        android:padding="24dp"
+        android:textColor="?android:textColor"
+        />
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/themeToggle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/dark_light"
+        android:padding="24dp"
+        android:textColor="?android:textColor"
+        />
 
     <View
         android:layout_width="match_parent"
-        android:layout_height="1dp"
+        android:layout_height="2dp"
         android:layout_marginHorizontal="24dp"
         android:layout_marginVertical="16dp"
-        android:background="@color/white" />
+        android:textColor="?android:textColor" />
 
     <!-- Hidden Apps Section -->
     <TextView

@@ -77,12 +77,25 @@ class LauncherPreferences(context: Context) {
         return FontSize.valueOf(name ?: FontSize.MEDIUM.name)
     }
 
+    // Toggle dark/light mode
+    fun toggleTheme() {
+        val isDarkMode = isDarkMode()
+        prefs.edit { putBoolean(KEY_DARK_MODE, !isDarkMode) }
+    }
+
+    // Check if dark mode is enabled
+    fun isDarkMode(): Boolean {
+        return prefs.getBoolean(KEY_DARK_MODE, true) // Default to dark mode
+    }
+
+
     companion object {
         const val KEY_FAVORITES = "favorites"
         private const val KEY_CUSTOM_NAME = "custom_name_"
         const val KEY_HIDDEN = "hidden_apps"
         const val KEY_FONT_SIZE = "font_size"
         const val KEY_STATUS_BAR_VISIBLE = "status_bar_visible"
+        const val KEY_DARK_MODE = "dark_mode"
     }
 }
 
