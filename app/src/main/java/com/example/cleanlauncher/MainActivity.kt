@@ -3,8 +3,6 @@ package com.example.cleanlauncher
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.viewpager2.adapter.FragmentStateAdapter
@@ -14,6 +12,7 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var viewPager: ViewPager2
     private lateinit var launcherPreferences: LauncherPreferences
+    private var isStatusBarCurrentlyVisible: Boolean? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,38 +27,35 @@ class MainActivity : AppCompatActivity() {
         viewPager.adapter = ScreenSlidePagerAdapter(this)
         viewPager.orientation = ViewPager2.ORIENTATION_VERTICAL
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        // Use WindowInsets to adjust layout for the status bar
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.root_layout)) { view, insets ->
-            val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
-            view.setPadding(0, statusBarHeight, 0, 0) // Apply padding to the root layout
-            insets
-        }
-
-        // Apply status bar visibility based on preferences
-        setStatusBarVisibility(launcherPreferences.isStatusBarVisible())
+        // Initial status bar visibility setup
+        updateStatusBarVisibility()
 
         viewPager.setCurrentItem(HOME_SCREEN_INDEX, false)
         viewPager.isUserInputEnabled = true
-
     }
 
-    override fun onResume(){
+    override fun onResume() {
         super.onResume()
+        updateStatusBarVisibility()
         viewPager.setCurrentItem(HOME_SCREEN_INDEX, false)
         viewPager.isUserInputEnabled = true
         val appDrawerFragment = supportFragmentManager.findFragmentByTag("f1") as? AppDrawerFragment
         appDrawerFragment?.scrollToTop()
     }
 
-    private fun setStatusBarVisibility(isVisible: Boolean) {
-        WindowInsetsControllerCompat(window, window.decorView).apply {
-            if (isVisible) {
-                show(WindowInsetsCompat.Type.statusBars())
-            } else {
-                hide(WindowInsetsCompat.Type.statusBars())
+    private fun updateStatusBarVisibility() {
+        val shouldStatusBarBeVisible = launcherPreferences.isStatusBarVisible()
+
+        // Check if the current visibility state matches the preference
+        if (isStatusBarCurrentlyVisible == null || isStatusBarCurrentlyVisible != shouldStatusBarBeVisible) {
+            WindowInsetsControllerCompat(window, window.decorView).apply {
+                if (shouldStatusBarBeVisible) {
+                    show(WindowInsetsCompat.Type.statusBars())
+                } else {
+                    hide(WindowInsetsCompat.Type.statusBars())
+                }
             }
+            isStatusBarCurrentlyVisible = shouldStatusBarBeVisible
         }
     }
 
