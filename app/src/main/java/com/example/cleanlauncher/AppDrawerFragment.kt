@@ -34,72 +34,33 @@ class AppDrawerFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         launcherPreferences = LauncherPreferences(requireContext())
-        allAppsView = view.findViewById(R.id.all_apps)
-        searchBar = view.findViewById(R.id.search_bar)
-        allAppsView.layoutManager = LinearLayoutManager(context)
-        allAppsView.isNestedScrollingEnabled = true
-
-        val settingsIcon: ImageButton = view.findViewById(R.id.settings_icon)
-        settingsIcon.setOnClickListener {
-            val intent = Intent(requireContext(), SettingsActivity::class.java)
-            startActivity(intent)
+        allAppsView = view.findViewById<RecyclerView>(R.id.all_apps).apply {
+            layoutManager = LinearLayoutManager(context)
+            isNestedScrollingEnabled = true
+            addOnItemTouchListener(createTouchListener())
         }
 
+        searchBar = view.findViewById<EditText>(R.id.search_bar).apply {
+            addTextChangedListener(createTextWatcher())
+        }
 
+        view.findViewById<ImageButton>(R.id.settings_icon).setOnClickListener {
+            startActivity(Intent(requireContext(), SettingsActivity::class.java))
+        }
 
         lastKnownFontSize = launcherPreferences.getFontSize()
-        updateAppList(lastKnownFontSize!!)
-        searchBar.setTextSize(TypedValue.COMPLEX_UNIT_SP, lastKnownFontSize!!.textSize)
-
-        searchBar.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                filterApps(s.toString())
-            }
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
-
-        // Add touch listener to handle swipe gestures
-        allAppsView.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
-            private var startY = 0f
-
-            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
-                when (e.action) {
-                    MotionEvent.ACTION_DOWN -> {
-                        startY = e.y
-                        // Disable ViewPager2 input initially
-                        (activity as? MainActivity)?.viewPager?.isUserInputEnabled = false
-                    }
-                    MotionEvent.ACTION_MOVE -> {
-                        val diffY = e.y - startY
-                        // Enable ViewPager2 only if swiping down and at the top of the RecyclerView
-                        if (diffY > 0 && !rv.canScrollVertically(-1)) {
-                            (activity as? MainActivity)?.viewPager?.isUserInputEnabled = true
-                            return false
-                        }
-                    }
-                }
-                return false
-            }
-
-            override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
-            override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
-        })
+        updateAppList(lastKnownFontSize ?: FontSize.MEDIUM)
     }
 
     override fun onResume() {
         super.onResume()
 
-        // Check if the font size has changed
         val currentFontSize = launcherPreferences.getFontSize()
         if (currentFontSize != lastKnownFontSize) {
             lastKnownFontSize = currentFontSize
-            cachedAppList = null // Invalidate cache
-            updateAppList(currentFontSize)
-        } else {
-            updateAppList(currentFontSize)
+            cachedAppList = null
         }
+        updateAppList(currentFontSize)
         searchBar.setText("")
     }
 
@@ -116,14 +77,12 @@ class AppDrawerFragment : Fragment() {
     }
 
     private fun updateAppList(fontSize: FontSize) {
-
         searchBar.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize.textSize)
 
         val apps = AppUtils.getInstalledApps(requireContext(), launcherPreferences)
             .filter { it.state == AppState.NEITHER }
             .map { LauncherItem.App(it) }
 
-        // Update the cache
         cachedAppList = apps
 
         allAppsView.adapter = AppAdapter(
@@ -133,13 +92,48 @@ class AppDrawerFragment : Fragment() {
                     AppUtils.launchApp(requireContext(), item.appInfo.packageName)
                 }
             },
-            onItemLongClick = { item, view ->
-                item is LauncherItem.App
-            },
+            onItemLongClick = { item, _ -> item is LauncherItem.App },
             isFavoritesList = false,
             fontSize = fontSize,
             launcherPreferences = launcherPreferences,
             showAppState = false
         )
+    }
+
+    private fun createTextWatcher(): TextWatcher {
+        return object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                filterApps(s.toString())
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        }
+    }
+
+    private fun createTouchListener(): RecyclerView.OnItemTouchListener {
+        return object : RecyclerView.OnItemTouchListener {
+            private var startY = 0f
+
+            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                when (e.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        startY = e.y
+                        (activity as? MainActivity)?.viewPager?.isUserInputEnabled = false
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        val diffY = e.y - startY
+                        if (diffY > 0 && !rv.canScrollVertically(-1)) {
+                            (activity as? MainActivity)?.viewPager?.isUserInputEnabled = true
+                            return false
+                        }
+                    }
+                }
+                return false
+            }
+
+            override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
+            override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
+        }
     }
 }

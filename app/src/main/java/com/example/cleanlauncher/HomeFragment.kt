@@ -9,10 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelChildren
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -21,7 +18,6 @@ class HomeFragment : Fragment() {
 
     private lateinit var favoriteAppsView: RecyclerView
     private lateinit var launcherPreferences: LauncherPreferences
-    private val scope = CoroutineScope(Dispatchers.Main + Job())
     private var cachedFavoriteApps: List<LauncherItem>? = null
     private var lastKnownFontSize: FontSize? = null
 
@@ -36,41 +32,35 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         launcherPreferences = LauncherPreferences(requireContext())
-        favoriteAppsView = view.findViewById(R.id.favorite_apps)
-        favoriteAppsView.layoutManager = LinearLayoutManager(context)
-
-        // Add divider
-        val divider = DividerItemDecoration(context, LinearLayoutManager.VERTICAL)
-        context?.let {
-            ContextCompat.getDrawable(it, R.drawable.divider)?.let { drawable ->
-                divider.setDrawable(drawable)
-            }
+        favoriteAppsView = view.findViewById<RecyclerView>(R.id.favorite_apps).apply {
+            layoutManager = LinearLayoutManager(context)
+            addItemDecoration(createDivider())
         }
-        favoriteAppsView.addItemDecoration(divider)
 
-        // Initialize last known font size
         lastKnownFontSize = launcherPreferences.getFontSize()
-        updateFavorites(lastKnownFontSize!!)
+        updateFavorites(lastKnownFontSize ?: FontSize.MEDIUM)
     }
 
     override fun onResume() {
         super.onResume()
 
-        // Check if the font size has changed
         val currentFontSize = launcherPreferences.getFontSize()
         if (currentFontSize != lastKnownFontSize) {
             lastKnownFontSize = currentFontSize
-            cachedFavoriteApps = null // Invalidate cache
-            updateFavorites(currentFontSize)
-        } else {
-            updateFavorites(currentFontSize)
+            cachedFavoriteApps = null
         }
+        updateFavorites(currentFontSize)
         startTimeUpdates()
     }
 
-    override fun onPause() {
-        super.onPause()
-        scope.coroutineContext.cancelChildren()
+    private fun createDivider(): DividerItemDecoration {
+        return DividerItemDecoration(context, LinearLayoutManager.VERTICAL).apply {
+            context?.let {
+                ContextCompat.getDrawable(it, R.drawable.divider)?.let { drawable ->
+                    setDrawable(drawable)
+                }
+            }
+        }
     }
 
     private fun updateFavorites(fontSize: FontSize) {
@@ -78,20 +68,13 @@ class HomeFragment : Fragment() {
         val favoriteApps = apps.filter { it.state == AppState.FAVORITE }
 
         val launcherItems = favoriteApps.map { LauncherItem.App(it) } +
-                if (favoriteApps.isEmpty()) {
-                    listOf(LauncherItem.AllApps)
-                } else {
-                    emptyList()
-                }
+                if (favoriteApps.isEmpty()) listOf(LauncherItem.AllApps) else emptyList()
 
-        // Check if the favorite apps list has changed
         if (cachedFavoriteApps == launcherItems && favoriteAppsView.adapter != null) {
-            // If the list is unchanged, just update the font size
             (favoriteAppsView.adapter as AppAdapter).notifyDataSetChanged()
             return
         }
 
-        // Update the cache
         cachedFavoriteApps = launcherItems
 
         favoriteAppsView.adapter = AppAdapter(
@@ -101,9 +84,7 @@ class HomeFragment : Fragment() {
                     AppUtils.launchApp(requireContext(), item.appInfo.packageName)
                 }
             },
-            onItemLongClick = { item, view ->
-                item is LauncherItem.App
-            },
+            onItemLongClick = { item, _ -> item is LauncherItem.App },
             isFavoritesList = true,
             fontSize = fontSize,
             launcherPreferences = launcherPreferences,
@@ -112,7 +93,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun startTimeUpdates() {
-        scope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             while (isActive) {
                 val currentTime = System.currentTimeMillis()
                 val nextMinute = currentTime - (currentTime % 60000) + 60000
@@ -120,9 +101,8 @@ class HomeFragment : Fragment() {
 
                 delay(delayToNextMinute)
 
-                val adapter = favoriteAppsView.adapter
-                val items = (adapter as? AppAdapter)?.items ?: return@launch
-                val clockPosition = items.indexOfFirst { item ->
+                val adapter = favoriteAppsView.adapter as? AppAdapter ?: return@launch
+                val clockPosition = adapter.items.indexOfFirst { item ->
                     item is LauncherItem.App &&
                             (item.appInfo.packageName == "com.android.deskclock" ||
                                     item.appInfo.packageName == "com.google.android.deskclock")
