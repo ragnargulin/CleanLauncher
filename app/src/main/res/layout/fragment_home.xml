@@ -3,12 +3,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-
-<!-- RecyclerView for favorite apps -->
+    <!-- RecyclerView for favorite apps -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/favorite_apps"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:paddingTop="300dp" />
+        android:layout_height="wrap_content"
+        android:layout_gravity="center" />
 
 </FrameLayout>
