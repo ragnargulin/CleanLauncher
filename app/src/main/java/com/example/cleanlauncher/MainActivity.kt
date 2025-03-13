@@ -7,38 +7,42 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
+import com.example.cleanlauncher.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var viewPager: ViewPager2
+    lateinit var binding: ActivityMainBinding
     private lateinit var launcherPreferences: LauncherPreferences
     private var isStatusBarCurrentlyVisible: Boolean? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        // Inflate the layout using View Binding
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         launcherPreferences = LauncherPreferences(this)
 
         AppCompatDelegate.setDefaultNightMode(
             if (launcherPreferences.isDarkMode()) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
         )
-        viewPager = findViewById(R.id.viewPager)
-        viewPager.adapter = ScreenSlidePagerAdapter(this)
-        viewPager.orientation = ViewPager2.ORIENTATION_VERTICAL
+
+        // Access the ViewPager using the binding
+        binding.viewPager.adapter = ScreenSlidePagerAdapter(this)
+        binding.viewPager.orientation = ViewPager2.ORIENTATION_VERTICAL
 
         // Initial status bar visibility setup
         updateStatusBarVisibility()
 
-        viewPager.setCurrentItem(HOME_SCREEN_INDEX, false)
-        viewPager.isUserInputEnabled = true
+        binding.viewPager.setCurrentItem(HOME_SCREEN_INDEX, false)
+        binding.viewPager.isUserInputEnabled = true
     }
 
     override fun onResume() {
         super.onResume()
         updateStatusBarVisibility()
-        viewPager.setCurrentItem(HOME_SCREEN_INDEX, false)
-        viewPager.isUserInputEnabled = true
+        binding.viewPager.setCurrentItem(HOME_SCREEN_INDEX, false)
+        binding.viewPager.isUserInputEnabled = true
         val appDrawerFragment = supportFragmentManager.findFragmentByTag("f1") as? AppDrawerFragment
         appDrawerFragment?.scrollToTop()
     }

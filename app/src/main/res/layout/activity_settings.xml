@@ -131,6 +131,16 @@
                 android:padding="12dp"
                 android:textSize="30sp"
                 android:textColor="?android:textColor" />
+
+            <!-- Toggle for lowercase/uppercase -->
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/screenTimeToggle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/show_screen_time"
+                android:padding="12dp"
+                android:textSize="30sp"
+                android:textColor="?android:textColor" />
         </LinearLayout>
 
         <!-- Divider -->

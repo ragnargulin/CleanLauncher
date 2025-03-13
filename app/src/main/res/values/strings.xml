@@ -12,4 +12,5 @@
     <string name="dark_light">Dark / Light</string>
     <string name="lowercase_uppercase">aa / Aa</string>
     <string name="title_toggles">‣ Toggles</string>
+    <string name="show_screen_time">Show screen time</string>
 </resources>

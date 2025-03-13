@@ -6,17 +6,19 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import androidx.lifecycle.lifecycleScope
+import com.example.cleanlauncher.databinding.FragmentHomeBinding
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
 
-    private lateinit var favoriteAppsView: RecyclerView
+    private var _binding: FragmentHomeBinding? = null
+    private val binding get() = _binding!!
+
     private lateinit var launcherPreferences: LauncherPreferences
     private var cachedFavoriteApps: List<LauncherItem>? = null
     private var lastKnownFontSize: FontSize? = null
@@ -25,14 +27,17 @@ class HomeFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_home, container, false)
+        // Inflate the layout using View Binding
+        _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         launcherPreferences = LauncherPreferences(requireContext())
-        favoriteAppsView = view.findViewById<RecyclerView>(R.id.favorite_apps).apply {
+
+        binding.favoriteApps.apply {
             layoutManager = LinearLayoutManager(context)
             addItemDecoration(createDivider())
         }
@@ -53,6 +58,11 @@ class HomeFragment : Fragment() {
         startTimeUpdates()
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
     private fun createDivider(): DividerItemDecoration {
         return DividerItemDecoration(context, LinearLayoutManager.VERTICAL).apply {
             context?.let {
@@ -70,14 +80,14 @@ class HomeFragment : Fragment() {
         val launcherItems = favoriteApps.map { LauncherItem.App(it) } +
                 if (favoriteApps.isEmpty()) listOf(LauncherItem.AllApps) else emptyList()
 
-        if (cachedFavoriteApps == launcherItems && favoriteAppsView.adapter != null) {
-            (favoriteAppsView.adapter as AppAdapter).notifyDataSetChanged()
+        if (cachedFavoriteApps == launcherItems && binding.favoriteApps.adapter != null) {
+            (binding.favoriteApps.adapter as AppAdapter).notifyDataSetChanged()
             return
         }
 
         cachedFavoriteApps = launcherItems
 
-        favoriteAppsView.adapter = AppAdapter(
+        binding.favoriteApps.adapter = AppAdapter(
             items = launcherItems,
             onItemClick = { item ->
                 if (item is LauncherItem.App) {
@@ -86,7 +96,7 @@ class HomeFragment : Fragment() {
             },
             onItemLongClick = { item, _ -> item is LauncherItem.App },
             isFavoritesList = true,
-            fontSize = fontSize,
+            fontSize = lastKnownFontSize ?: FontSize.MEDIUM,
             launcherPreferences = launcherPreferences,
             showAppState = false
         )
@@ -101,7 +111,7 @@ class HomeFragment : Fragment() {
 
                 delay(delayToNextMinute)
 
-                val adapter = favoriteAppsView.adapter as? AppAdapter ?: return@launch
+                val adapter = binding.favoriteApps.adapter as? AppAdapter ?: return@launch
                 val clockPosition = adapter.items.indexOfFirst { item ->
                     item is LauncherItem.App &&
                             (item.appInfo.packageName == "com.android.deskclock" ||

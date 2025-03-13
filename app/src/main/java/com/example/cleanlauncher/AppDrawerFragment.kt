@@ -7,18 +7,19 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.content.Intent
 import android.util.TypedValue
-import android.widget.ImageButton
+import com.example.cleanlauncher.databinding.FragmentAppDrawerBinding
+
 
 class AppDrawerFragment : Fragment() {
 
-    private lateinit var allAppsView: RecyclerView
-    private lateinit var searchBar: EditText
+    private var _binding: FragmentAppDrawerBinding? = null
+    private val binding get() = _binding!!
+
     private lateinit var launcherPreferences: LauncherPreferences
     private var cachedAppList: List<LauncherItem.App>? = null
     private var lastKnownFontSize: FontSize? = null
@@ -27,24 +28,24 @@ class AppDrawerFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_app_drawer, container, false)
+        _binding = FragmentAppDrawerBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         launcherPreferences = LauncherPreferences(requireContext())
-        allAppsView = view.findViewById<RecyclerView>(R.id.all_apps).apply {
+
+        binding.allApps.apply {
             layoutManager = LinearLayoutManager(context)
             isNestedScrollingEnabled = true
             addOnItemTouchListener(createTouchListener())
         }
 
-        searchBar = view.findViewById<EditText>(R.id.search_bar).apply {
-            addTextChangedListener(createTextWatcher())
-        }
+        binding.searchBar.addTextChangedListener(createTextWatcher())
 
-        view.findViewById<ImageButton>(R.id.settings_icon).setOnClickListener {
+        binding.settingsIcon.setOnClickListener {
             startActivity(Intent(requireContext(), SettingsActivity::class.java))
         }
 
@@ -61,11 +62,16 @@ class AppDrawerFragment : Fragment() {
             cachedAppList = null
         }
         updateAppList(currentFontSize)
-        searchBar.setText("")
+        binding.searchBar.setText("")
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     fun scrollToTop() {
-        allAppsView.scrollToPosition(0)
+        binding.allApps.scrollToPosition(0)
     }
 
     private fun filterApps(query: String) {
@@ -73,11 +79,11 @@ class AppDrawerFragment : Fragment() {
             it.appInfo.name.contains(query, ignoreCase = true)
         } ?: emptyList()
 
-        (allAppsView.adapter as? AppAdapter)?.updateList(filteredList)
+        (binding.allApps.adapter as? AppAdapter)?.updateList(filteredList)
     }
 
     private fun updateAppList(fontSize: FontSize) {
-        searchBar.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize.textSize)
+        binding.searchBar.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize.textSize)
 
         val apps = AppUtils.getInstalledApps(requireContext(), launcherPreferences)
             .filter { it.state == AppState.NEITHER }
@@ -85,7 +91,7 @@ class AppDrawerFragment : Fragment() {
 
         cachedAppList = apps
 
-        allAppsView.adapter = AppAdapter(
+        binding.allApps.adapter = AppAdapter(
             items = apps,
             onItemClick = { item ->
                 if (item is LauncherItem.App) {
@@ -119,12 +125,12 @@ class AppDrawerFragment : Fragment() {
                 when (e.action) {
                     MotionEvent.ACTION_DOWN -> {
                         startY = e.y
-                        (activity as? MainActivity)?.viewPager?.isUserInputEnabled = false
+                        (activity as? MainActivity)?.binding?.viewPager?.isUserInputEnabled = false
                     }
                     MotionEvent.ACTION_MOVE -> {
                         val diffY = e.y - startY
                         if (diffY > 0 && !rv.canScrollVertically(-1)) {
-                            (activity as? MainActivity)?.viewPager?.isUserInputEnabled = true
+                            (activity as? MainActivity)?.binding?.viewPager?.isUserInputEnabled = true
                             return false
                         }
                     }

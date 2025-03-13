@@ -7,9 +7,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.view.View
 import android.widget.EditText
-import android.widget.LinearLayout
 import android.widget.PopupMenu
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -17,26 +15,21 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import android.widget.RadioGroup
+import com.example.cleanlauncher.databinding.ActivitySettingsBinding
 import com.google.android.material.switchmaterial.SwitchMaterial
 
 class SettingsActivity : AppCompatActivity() {
 
+    private lateinit var binding: ActivitySettingsBinding
     private lateinit var launcherPreferences: LauncherPreferences
-    private lateinit var hiddenAppsView: RecyclerView
-    private lateinit var hiddenAppsHeader: TextView
-    private lateinit var togglersHeader: TextView
-    private lateinit var togglersContainer: LinearLayout
-    private lateinit var fontSizeHeader: TextView
-    private lateinit var fontSizeGroup: RadioGroup
-    private lateinit var statusBarToggle: SwitchMaterial
-    private lateinit var themeToggle: SwitchMaterial
-    private lateinit var lowerCaseToggle: SwitchMaterial
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
+        // Inflate the layout using View Binding
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        launcherPreferences = LauncherPreferences(this)
 
         initializeViews()
         setupInitialStates()
@@ -45,38 +38,27 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun initializeViews() {
-        launcherPreferences = LauncherPreferences(this)
-        hiddenAppsView = findViewById(R.id.hidden_apps)
-        hiddenAppsHeader = findViewById(R.id.all_apps_header)
-        fontSizeHeader = findViewById(R.id.font_size_header)
-        fontSizeGroup = findViewById(R.id.fontSizeGroup)
-        statusBarToggle = findViewById(R.id.statusBarToggle)
-        themeToggle = findViewById(R.id.themeToggle)
-        lowerCaseToggle = findViewById(R.id.lowerCaseToggle)
-        togglersHeader = findViewById(R.id.toggles_header)
-        togglersContainer = findViewById(R.id.toggles_container)
-
-        hiddenAppsView.layoutManager = LinearLayoutManager(this)
+        binding.hiddenApps.layoutManager = LinearLayoutManager(this)
     }
 
     private fun setupInitialStates() {
-        statusBarToggle.isChecked = launcherPreferences.isStatusBarVisible()
-        setStatusBarVisibility(statusBarToggle.isChecked)
+        binding.statusBarToggle.isChecked = launcherPreferences.isStatusBarVisible()
+        setStatusBarVisibility(binding.statusBarToggle.isChecked)
 
-        themeToggle.isChecked = launcherPreferences.isDarkMode()
+        binding.themeToggle.isChecked = launcherPreferences.isDarkMode()
 
-        lowerCaseToggle.isChecked = launcherPreferences.getAppNameTextStyle() == AppNameTextStyle.LEADING_UPPERCASE
+        binding.lowerCaseToggle.isChecked = launcherPreferences.getAppNameTextStyle() == AppNameTextStyle.LEADING_UPPERCASE
 
         setupFontSizeSelector()
     }
 
     private fun setupListeners() {
-        statusBarToggle.setOnCheckedChangeListener { _, isChecked ->
+        binding.statusBarToggle.setOnCheckedChangeListener { _, isChecked ->
             launcherPreferences.setStatusBarVisible(isChecked)
             setStatusBarVisibility(isChecked)
         }
 
-        themeToggle.setOnCheckedChangeListener { _, isChecked ->
+        binding.themeToggle.setOnCheckedChangeListener { _, isChecked ->
             launcherPreferences.toggleTheme()
             AppCompatDelegate.setDefaultNightMode(
                 if (isChecked) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
@@ -84,7 +66,7 @@ class SettingsActivity : AppCompatActivity() {
             recreate()
         }
 
-        lowerCaseToggle.setOnCheckedChangeListener { _, isChecked ->
+        binding.lowerCaseToggle.setOnCheckedChangeListener { _, isChecked ->
             val newStyle = if (isChecked) AppNameTextStyle.LEADING_UPPERCASE else AppNameTextStyle.ALL_LOWERCASE
             launcherPreferences.setAppNameTextStyle(newStyle)
         }
@@ -110,9 +92,9 @@ class SettingsActivity : AppCompatActivity() {
             FontSize.LARGE -> R.id.sizeLarge
             FontSize.XLARGE -> R.id.sizeXLarge
         }
-        fontSizeGroup.check(buttonId)
+        binding.fontSizeGroup.check(buttonId)
 
-        fontSizeGroup.setOnCheckedChangeListener { _, checkedId ->
+        binding.fontSizeGroup.setOnCheckedChangeListener { _, checkedId ->
             val newSize = when (checkedId) {
                 R.id.sizeSmall -> FontSize.SMALL
                 R.id.sizeMedium -> FontSize.MEDIUM
@@ -126,16 +108,16 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupCollapsibleSections() {
-        fontSizeHeader.setOnClickListener {
-            toggleVisibility(fontSizeGroup)
+        binding.fontSizeHeader.setOnClickListener {
+            toggleVisibility(binding.fontSizeGroup)
         }
 
-        togglersHeader.setOnClickListener {
-            toggleVisibility(togglersContainer)
+        binding.togglesHeader.setOnClickListener {
+            toggleVisibility(binding.togglesContainer)
         }
 
-        hiddenAppsHeader.setOnClickListener {
-            toggleVisibility(hiddenAppsView)
+        binding.allAppsHeader.setOnClickListener {
+            toggleVisibility(binding.hiddenApps)
         }
     }
 
@@ -258,7 +240,7 @@ class SettingsActivity : AppCompatActivity() {
         val allApps = AppUtils.getInstalledApps(this, launcherPreferences)
             .map { LauncherItem.App(it) }
 
-        hiddenAppsView.adapter = AppAdapter(
+        binding.hiddenApps.adapter = AppAdapter(
             items = allApps,
             onItemClick = { /* Do nothing */ },
             onItemLongClick = { item, view ->
