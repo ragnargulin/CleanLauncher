@@ -37,16 +37,15 @@
             android:id="@+id/fontSizeGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="24dp"
+            android:paddingHorizontal="30dp"
             android:orientation="vertical"
-            android:textColor="?android:textColor"
             android:visibility="gone">
 
             <RadioButton
                 android:id="@+id/sizeSmall"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/font_size_small"
+                android:text="@string/font_size_example"
                 android:textSize="20sp"
                 android:textColor="?android:textColor" />
 
@@ -54,7 +53,7 @@
                 android:id="@+id/sizeMedium"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/font_size_medium"
+                android:text="@string/font_size_example"
                 android:textSize="30sp"
                 android:textColor="?android:textColor" />
 
@@ -62,7 +61,7 @@
                 android:id="@+id/sizeLarge"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/font_size_large"
+                android:text="@string/font_size_example"
                 android:textSize="40sp"
                 android:textColor="?android:textColor" />
 
@@ -70,7 +69,7 @@
                 android:id="@+id/sizeXLarge"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/font_size_xlarge"
+                android:text="@string/font_size_example"
                 android:textSize="50sp"
                 android:textColor="?android:textColor" />
         </RadioGroup>
@@ -81,7 +80,7 @@
             android:layout_height="2dp"
             android:background="@drawable/divider" />
 
-        <!-- Togglers Section Header -->
+        <!-- Toggles Section Header -->
         <TextView
             android:id="@+id/toggles_header"
             android:layout_width="match_parent"
@@ -94,12 +93,13 @@
             android:clickable="true"
             android:focusable="true" />
 
-        <!-- Togglers Container -->
+        <!-- Toggles Container -->
         <LinearLayout
             android:id="@+id/toggles_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:paddingHorizontal="30dp"
             android:visibility="gone">
 
             <!-- Toggle to hide/show status bar -->
@@ -133,11 +133,6 @@
                 android:textColor="?android:textColor" />
         </LinearLayout>
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:textColor="?android:textColor" />
-
         <!-- Divider -->
         <View
             android:layout_width="match_parent"
@@ -162,7 +157,7 @@
             android:id="@+id/hidden_apps"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="24dp"
+            android:paddingHorizontal="30dp"
             android:visibility="gone" />
 
     </LinearLayout>
