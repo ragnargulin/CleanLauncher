@@ -15,13 +15,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.widget.RadioGroup
 import com.google.android.material.switchmaterial.SwitchMaterial
-import androidx.core.view.isVisible
 
 class SettingsActivity : AppCompatActivity() {
+
     private lateinit var launcherPreferences: LauncherPreferences
     private lateinit var hiddenAppsView: RecyclerView
     private lateinit var hiddenAppsHeader: TextView
@@ -37,6 +38,13 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
+        initializeViews()
+        setupInitialStates()
+        setupListeners()
+        updateHiddenAppsList()
+    }
+
+    private fun initializeViews() {
         launcherPreferences = LauncherPreferences(this)
         hiddenAppsView = findViewById(R.id.hidden_apps)
         hiddenAppsHeader = findViewById(R.id.all_apps_header)
@@ -49,42 +57,39 @@ class SettingsActivity : AppCompatActivity() {
         togglersContainer = findViewById(R.id.toggles_container)
 
         hiddenAppsView.layoutManager = LinearLayoutManager(this)
+    }
 
-        // Set initial status bar visibility based on preferences
-        val isStatusBarVisible = launcherPreferences.isStatusBarVisible()
-        statusBarToggle.isChecked = isStatusBarVisible
-        setStatusBarVisibility(isStatusBarVisible)
+    private fun setupInitialStates() {
+        statusBarToggle.isChecked = launcherPreferences.isStatusBarVisible()
+        setStatusBarVisibility(statusBarToggle.isChecked)
 
+        themeToggle.isChecked = launcherPreferences.isDarkMode()
+
+        lowerCaseToggle.isChecked = launcherPreferences.getAppNameTextStyle() == AppNameTextStyle.LEADING_UPPERCASE
+
+        setupFontSizeSelector()
+    }
+
+    private fun setupListeners() {
         statusBarToggle.setOnCheckedChangeListener { _, isChecked ->
             launcherPreferences.setStatusBarVisible(isChecked)
             setStatusBarVisibility(isChecked)
         }
 
-        // Set initial theme toggle state
-        themeToggle.isChecked = launcherPreferences.isDarkMode()
-
-        // Handle theme toggle changes
         themeToggle.setOnCheckedChangeListener { _, isChecked ->
             launcherPreferences.toggleTheme()
             AppCompatDelegate.setDefaultNightMode(
                 if (isChecked) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
             )
-            recreate() // Recreate the activity to apply the new theme
+            recreate()
         }
 
-        // Set initial app name text style toggle state
-        lowerCaseToggle.isChecked = launcherPreferences.getAppNameTextStyle() == AppNameTextStyle.LEADING_UPPERCASE
-
-        // Handle app name text style toggle changes
         lowerCaseToggle.setOnCheckedChangeListener { _, isChecked ->
             val newStyle = if (isChecked) AppNameTextStyle.LEADING_UPPERCASE else AppNameTextStyle.ALL_LOWERCASE
             launcherPreferences.setAppNameTextStyle(newStyle)
-            // Optionally, refresh the UI or notify the adapter if needed
         }
 
-        setupFontSizeSelector()
         setupCollapsibleSections()
-        updateHiddenAppsList()
     }
 
     private fun setStatusBarVisibility(isVisible: Boolean) {
@@ -98,7 +103,6 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupFontSizeSelector() {
-        // Set initial selection
         val currentSize = launcherPreferences.getFontSize()
         val buttonId = when (currentSize) {
             FontSize.SMALL -> R.id.sizeSmall
@@ -108,7 +112,6 @@ class SettingsActivity : AppCompatActivity() {
         }
         fontSizeGroup.check(buttonId)
 
-        // Handle selection changes
         fontSizeGroup.setOnCheckedChangeListener { _, checkedId ->
             val newSize = when (checkedId) {
                 R.id.sizeSmall -> FontSize.SMALL
@@ -118,27 +121,33 @@ class SettingsActivity : AppCompatActivity() {
                 else -> FontSize.MEDIUM
             }
             launcherPreferences.setFontSize(newSize)
-            val intent = Intent(this, MainActivity::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(intent)
-            finish()
+            restartMainActivity()
         }
     }
 
     private fun setupCollapsibleSections() {
-        // Setup collapsible for font size section
         fontSizeHeader.setOnClickListener {
-            fontSizeGroup.visibility = if (fontSizeGroup.isVisible) View.GONE else View.VISIBLE
+            toggleVisibility(fontSizeGroup)
         }
 
-        // Setup collapsible for hidden apps section
         togglersHeader.setOnClickListener {
-            togglersContainer.visibility = if (togglersContainer.isVisible) View.GONE else View.VISIBLE
+            toggleVisibility(togglersContainer)
         }
-        // Setup collapsible for hidden apps section
+
         hiddenAppsHeader.setOnClickListener {
-            hiddenAppsView.visibility = if (hiddenAppsView.isVisible) View.GONE else View.VISIBLE
+            toggleVisibility(hiddenAppsView)
         }
+    }
+
+    private fun toggleVisibility(view: View) {
+        view.visibility = if (view.isVisible) View.GONE else View.VISIBLE
+    }
+
+    private fun restartMainActivity() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
+        finish()
     }
 
     private fun showAppOptions(
@@ -149,62 +158,68 @@ class SettingsActivity : AppCompatActivity() {
         updateList: () -> Unit
     ) {
         PopupMenu(context, view).apply {
-            // Check if the app is a favorite
-            if (launcherPreferences.getFavorites().contains(app.appInfo.packageName)) {
-                menu.add("Remove from Favorites")
-            } else {
-                menu.add("Add to Favorites")
-            }
+            val isFavorite = launcherPreferences.getFavorites().contains(app.appInfo.packageName)
+            menu.add(if (isFavorite) "Remove from Favorites" else "Add to Favorites")
 
-            // Check if the app is hidden
-            if (app.appInfo.state == AppState.HIDDEN) {
-                menu.add("Unhide App")
-            } else {
-                menu.add("Hide App")
-            }
+            val isHidden = app.appInfo.state == AppState.HIDDEN
+            menu.add(if (isHidden) "Unhide App" else "Hide App")
 
             menu.add("Rename")
             menu.add("App Info")
 
             setOnMenuItemClickListener { menuItem ->
-                when (menuItem.title.toString()) {
-                    "Add to Favorites" -> {
-                        launcherPreferences.addFavorite(app.appInfo.packageName)
-                        Toast.makeText(context, "${app.appInfo.displayName()} added to favorites", Toast.LENGTH_SHORT).show()
-                        updateList()
-                        true
-                    }
-                    "Remove from Favorites" -> {
-                        launcherPreferences.removeFavorite(app.appInfo.packageName)
-                        Toast.makeText(context, "${app.appInfo.displayName()} removed from favorites", Toast.LENGTH_SHORT).show()
-                        updateList()
-                        true
-                    }
-                    "Rename" -> {
-                        showRenameDialog(context, app, launcherPreferences, updateList)
-                        true
-                    }
-                    "Hide App" -> {
-                        launcherPreferences.hideApp(app.appInfo.packageName)
-                        Toast.makeText(context, "${app.appInfo.displayName()} hidden", Toast.LENGTH_SHORT).show()
-                        updateList()
-                        true
-                    }
-                    "Unhide App" -> {
-                        launcherPreferences.unhideApp(app.appInfo.packageName)
-                        Toast.makeText(context, "${app.appInfo.displayName()} is now visible", Toast.LENGTH_SHORT).show()
-                        updateList()
-                        true
-                    }
-                    "App Info" -> {
-                        openAppInfo(context, app.appInfo.packageName)
-                        true
-                    }
-                    else -> false
-                }
+                handleMenuItemClick(menuItem.title.toString(), context, app, launcherPreferences, updateList)
             }
             show()
         }
+    }
+
+    private fun handleMenuItemClick(
+        title: String,
+        context: Context,
+        app: LauncherItem.App,
+        launcherPreferences: LauncherPreferences,
+        updateList: () -> Unit
+    ): Boolean {
+        return when (title) {
+            "Add to Favorites" -> {
+                launcherPreferences.addFavorite(app.appInfo.packageName)
+                showToast(context, "${app.appInfo.displayName()} added to favorites")
+                updateList()
+                true
+            }
+            "Remove from Favorites" -> {
+                launcherPreferences.removeFavorite(app.appInfo.packageName)
+                showToast(context, "${app.appInfo.displayName()} removed from favorites")
+                updateList()
+                true
+            }
+            "Rename" -> {
+                showRenameDialog(context, app, launcherPreferences, updateList)
+                true
+            }
+            "Hide App" -> {
+                launcherPreferences.hideApp(app.appInfo.packageName)
+                showToast(context, "${app.appInfo.displayName()} hidden")
+                updateList()
+                true
+            }
+            "Unhide App" -> {
+                launcherPreferences.unhideApp(app.appInfo.packageName)
+                showToast(context, "${app.appInfo.displayName()} is now visible")
+                updateList()
+                true
+            }
+            "App Info" -> {
+                openAppInfo(context, app.appInfo.packageName)
+                true
+            }
+            else -> false
+        }
+    }
+
+    private fun showToast(context: Context, message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
 
     private fun openAppInfo(context: Context, packageName: String) {
@@ -214,7 +229,12 @@ class SettingsActivity : AppCompatActivity() {
         context.startActivity(intent)
     }
 
-    private fun showRenameDialog(context: Context, app: LauncherItem.App, launcherPreferences: LauncherPreferences, updateList: () -> Unit) {
+    private fun showRenameDialog(
+        context: Context,
+        app: LauncherItem.App,
+        launcherPreferences: LauncherPreferences,
+        updateList: () -> Unit
+    ) {
         val editText = EditText(context).apply {
             setText(launcherPreferences.getCustomName(app.appInfo.packageName) ?: app.appInfo.name)
             setSingleLine()
@@ -235,7 +255,6 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun updateHiddenAppsList() {
-        // Retrieve all installed apps without filtering
         val allApps = AppUtils.getInstalledApps(this, launcherPreferences)
             .map { LauncherItem.App(it) }
 
@@ -249,7 +268,7 @@ class SettingsActivity : AppCompatActivity() {
                         app = item,
                         view = view,
                         launcherPreferences = launcherPreferences,
-                        updateList = { updateHiddenAppsList() } // Refresh the list after changes
+                        updateList = { updateHiddenAppsList() }
                     )
                     true
                 } else false
@@ -257,7 +276,7 @@ class SettingsActivity : AppCompatActivity() {
             isFavoritesList = false,
             fontSize = launcherPreferences.getFontSize(),
             launcherPreferences = launcherPreferences,
-            showAppState = true // Show app state in this list
+            showAppState = true
         )
     }
 }
