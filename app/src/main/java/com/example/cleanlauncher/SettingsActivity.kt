@@ -294,7 +294,8 @@ class SettingsActivity : AppCompatActivity() {
             isFavoritesList = false,
             fontSize = launcherPreferences.getFontSize(),
             launcherPreferences = launcherPreferences,
-            showAppState = true
+            showAppState = true,
+            isSettingsContext = true
         ).apply {
             notifyDataSetChanged() // Ensure the adapter is refreshed
         }

@@ -20,7 +20,8 @@ class AppAdapter(
     private val isFavoritesList: Boolean = false,
     private val fontSize: FontSize = FontSize.MEDIUM,
     private val launcherPreferences: LauncherPreferences,
-    private val showAppState: Boolean = false
+    private val showAppState: Boolean = false,
+    private val isSettingsContext: Boolean = false
 ) : RecyclerView.Adapter<AppAdapter.ViewHolder>() {
 
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -91,26 +92,33 @@ class AppAdapter(
         }
 
         // Custom long press logic for BAD apps
-        if (item.appInfo.state == AppState.BAD) {
-            val handler = Handler(Looper.getMainLooper())
-            val longPressRunnable = Runnable { onItemClick(item) }
-            val longPressTimeout = 7000L // Custom long press duration in milliseconds
-
-            holder.itemView.setOnTouchListener { _, event ->
-                when (event.action) {
-                    MotionEvent.ACTION_DOWN -> {
-                        handler.postDelayed(longPressRunnable, longPressTimeout)
-                    }
-                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                        handler.removeCallbacks(longPressRunnable)
-                    }
-                }
-                true
-            }
-        } else {
-            // Normal click for other apps
+        if (isSettingsContext) {
+            // In settings, long press opens app settings
             holder.itemView.setOnClickListener { onItemClick(item) }
             holder.itemView.setOnLongClickListener { view -> onItemLongClick(item, view) }
+        } else {
+            // Custom long press logic for BAD apps
+            if (item.appInfo.state == AppState.BAD) {
+                val handler = Handler(Looper.getMainLooper())
+                val longPressRunnable = Runnable { onItemClick(item) }
+                val longPressTimeout = 7000L // Custom long press duration in milliseconds
+
+                holder.itemView.setOnTouchListener { _, event ->
+                    when (event.action) {
+                        MotionEvent.ACTION_DOWN -> {
+                            handler.postDelayed(longPressRunnable, longPressTimeout)
+                        }
+                        MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                            handler.removeCallbacks(longPressRunnable)
+                        }
+                    }
+                    true
+                }
+            } else {
+                // Normal click for other apps
+                holder.itemView.setOnClickListener { onItemClick(item) }
+                holder.itemView.setOnLongClickListener { view -> onItemLongClick(item, view) }
+            }
         }
     }
 
