@@ -1,7 +1,10 @@
 package com.example.cleanlauncher
 
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -71,12 +74,10 @@ class AppAdapter(
 
         holder.appNameView.textSize = fontSize.textSize
 
-        Log.d("AppAdapter", "App: ${item.appInfo.name}, State: ${item.appInfo.state}")
 
         // Set text color only for BAD apps
         if (item.appInfo.state == AppState.BAD) {
             holder.appNameView.setTextColor(holder.itemView.context.getColor(R.color.grey))
-            Log.d("AppAdapter", "Applied grey color to BAD app: ${item.appInfo.name}")
         }
 
 
@@ -89,8 +90,28 @@ class AppAdapter(
             holder.timeView.visibility = View.GONE
         }
 
-        holder.itemView.setOnClickListener { onItemClick(item) }
-        holder.itemView.setOnLongClickListener { view -> onItemLongClick(item, view) }
+        // Custom long press logic for BAD apps
+        if (item.appInfo.state == AppState.BAD) {
+            val handler = Handler(Looper.getMainLooper())
+            val longPressRunnable = Runnable { onItemClick(item) }
+            val longPressTimeout = 7000L // Custom long press duration in milliseconds
+
+            holder.itemView.setOnTouchListener { _, event ->
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        handler.postDelayed(longPressRunnable, longPressTimeout)
+                    }
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                        handler.removeCallbacks(longPressRunnable)
+                    }
+                }
+                true
+            }
+        } else {
+            // Normal click for other apps
+            holder.itemView.setOnClickListener { onItemClick(item) }
+            holder.itemView.setOnLongClickListener { view -> onItemLongClick(item, view) }
+        }
     }
 
     private fun bindAllAppsItem(holder: ViewHolder) {
