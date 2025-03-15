@@ -1,5 +1,6 @@
 package com.example.cleanlauncher
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -70,9 +71,14 @@ class AppAdapter(
 
         holder.appNameView.textSize = fontSize.textSize
 
+        Log.d("AppAdapter", "App: ${item.appInfo.name}, State: ${item.appInfo.state}")
+
+        // Set text color only for BAD apps
         if (item.appInfo.state == AppState.BAD) {
-            holder.appNameView.setTextColor(holder.itemView.context.getColor(R.color.grey)) // Use a defined grey color
+            holder.appNameView.setTextColor(holder.itemView.context.getColor(R.color.grey))
+            Log.d("AppAdapter", "Applied grey color to BAD app: ${item.appInfo.name}")
         }
+
 
         if (isFavoritesList && (item.appInfo.packageName == "com.android.deskclock" ||
                     item.appInfo.packageName == "com.google.android.deskclock")) {
@@ -92,6 +98,7 @@ class AppAdapter(
             RecyclerView.LayoutParams.MATCH_PARENT,
             RecyclerView.LayoutParams.WRAP_CONTENT
         )
+
         holder.appNameView.text = holder.itemView.context.getString(R.string.all_apps)
         holder.appNameView.textSize = fontSize.textSize
         holder.timeView.visibility = View.GONE

@@ -135,9 +135,25 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
+    fun updateAppStates(apps: List<AppInfo>, launcherPreferences: LauncherPreferences) {
+        val favorites = launcherPreferences.getFavorites()
+        val hiddenApps = launcherPreferences.getHiddenApps()
+        val badApps = launcherPreferences.getBadApps()
+
+        apps.forEach { appInfo ->
+            appInfo.state = when {
+                badApps.contains(appInfo.packageName) -> AppState.BAD
+                favorites.contains(appInfo.packageName) -> AppState.FAVORITE
+                hiddenApps.contains(appInfo.packageName) -> AppState.HIDDEN
+                else -> AppState.NEITHER
+            }
+        }
+    }
+
     private fun updateAppLists(fontSize: FontSize) {
         binding.searchBar.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize.textSize)
         val apps = AppUtils.getInstalledApps(this, launcherPreferences)
+        updateAppStates(apps, launcherPreferences) // Ensure states are updated
         cachedFavoriteApps = apps.filter { it.state == AppState.FAVORITE }.map { LauncherItem.App(it) }
         cachedAllApps = apps.map { LauncherItem.App(it) }
     }
@@ -160,7 +176,9 @@ class HomeActivity : AppCompatActivity() {
 
     private fun filterApps(query: String) {
         val filteredList = cachedAllApps?.filter {
-            it.appInfo.name.startsWith(query, ignoreCase = true)
+            (it.appInfo.state == AppState.NEITHER || it.appInfo.state == AppState.BAD) &&
+
+                    it.appInfo.name.startsWith(query, ignoreCase = true)
         } ?: emptyList()
 
         binding.searchResults.adapter = AppAdapter(
