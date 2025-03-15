@@ -145,6 +145,9 @@ class SettingsActivity : AppCompatActivity() {
             val isHidden = app.appInfo.state == AppState.HIDDEN
             menu.add(if (isHidden) "Unhide App" else "Hide App")
 
+            val isBad = launcherPreferences.getBadApps().contains(app.appInfo.packageName)
+            menu.add(if (isBad) "Unmark as BAD" else "Mark as BAD")
+
             menu.add("Rename")
             menu.add("App Info")
 
@@ -188,6 +191,18 @@ class SettingsActivity : AppCompatActivity() {
             "Unhide App" -> {
                 launcherPreferences.unhideApp(app.appInfo.packageName)
                 showToast(context, "${app.appInfo.displayName()} is now visible")
+                updateList()
+                true
+            }
+            "Mark as BAD" -> {
+                launcherPreferences.markAsBad(app.appInfo.packageName)
+                showToast(context, "${app.appInfo.displayName()} marked as BAD")
+                updateList()
+                true
+            }
+            "Unmark as BAD" -> {
+                launcherPreferences.removeBad(app.appInfo.packageName)
+                showToast(context, "${app.appInfo.displayName()} unmarked as BAD")
                 updateList()
                 true
             }
@@ -235,12 +250,34 @@ class SettingsActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun updateHiddenAppsList() {
-        val allApps = AppUtils.getInstalledApps(this, launcherPreferences)
-            .map { LauncherItem.App(it) }
+    fun updateAppStates(apps: List<AppInfo>, launcherPreferences: LauncherPreferences) {
+        val favorites = launcherPreferences.getFavorites()
+        val hiddenApps = launcherPreferences.getHiddenApps()
+        val badApps = launcherPreferences.getBadApps()
 
+        apps.forEach { appInfo ->
+            appInfo.state = when {
+                badApps.contains(appInfo.packageName) -> AppState.BAD
+                favorites.contains(appInfo.packageName) -> AppState.FAVORITE
+                hiddenApps.contains(appInfo.packageName) -> AppState.HIDDEN
+                else -> AppState.NEITHER
+            }
+        }
+    }
+
+    private fun updateHiddenAppsList() {
+        // Get all installed apps as a list of AppInfo
+        val allApps = AppUtils.getInstalledApps(this, launcherPreferences)
+
+        // Update the states of these apps based on preferences
+        updateAppStates(allApps, launcherPreferences)
+
+        // Convert the list of AppInfo to a list of LauncherItem.App
+        val launcherItems = allApps.map { LauncherItem.App(it) }
+
+        // Set the adapter with the updated list
         binding.hiddenApps.adapter = AppAdapter(
-            items = allApps,
+            items = launcherItems,
             onItemClick = { /* Do nothing */ },
             onItemLongClick = { item, view ->
                 if (item is LauncherItem.App) {
@@ -258,6 +295,8 @@ class SettingsActivity : AppCompatActivity() {
             fontSize = launcherPreferences.getFontSize(),
             launcherPreferences = launcherPreferences,
             showAppState = true
-        )
+        ).apply {
+            notifyDataSetChanged() // Ensure the adapter is refreshed
+        }
     }
 }
