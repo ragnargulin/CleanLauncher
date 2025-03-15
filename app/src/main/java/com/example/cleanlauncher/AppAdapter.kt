@@ -70,6 +70,10 @@ class AppAdapter(
 
         holder.appNameView.textSize = fontSize.textSize
 
+        if (item.appInfo.state == AppState.BAD) {
+            holder.appNameView.setTextColor(holder.itemView.context.getColor(R.color.grey)) // Use a defined grey color
+        }
+
         if (isFavoritesList && (item.appInfo.packageName == "com.android.deskclock" ||
                     item.appInfo.packageName == "com.google.android.deskclock")) {
             holder.timeView.text = timeFormat.format(Date())
