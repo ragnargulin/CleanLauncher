@@ -44,6 +44,7 @@ class AppDrawerFragment : Fragment() {
         }
 
         binding.searchBar.addTextChangedListener(createTextWatcher())
+        binding.searchBar.setCursorVisible(false)
 
         binding.settingsIcon.setOnClickListener {
             startActivity(Intent(requireContext(), SettingsActivity::class.java))
@@ -110,6 +111,9 @@ class AppDrawerFragment : Fragment() {
         return object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
                 filterApps(s.toString())
+                if (!binding.searchBar.isFocused) {
+                    binding.searchBar.requestFocus()
+                }
             }
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
