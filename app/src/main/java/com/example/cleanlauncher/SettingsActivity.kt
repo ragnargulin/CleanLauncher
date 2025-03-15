@@ -24,11 +24,11 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Inflate the layout using View Binding
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        launcherPreferences = LauncherPreferences(this)
+        // Use singleton instance
+        launcherPreferences = LauncherPreferences.getInstance(this)
 
         initializeViews()
         setupInitialStates()
@@ -102,7 +102,7 @@ class SettingsActivity : AppCompatActivity() {
                 else -> FontSize.MEDIUM
             }
             launcherPreferences.setFontSize(newSize)
-            restartMainActivity()
+            restartHomeActivity()
         }
     }
 
@@ -124,8 +124,8 @@ class SettingsActivity : AppCompatActivity() {
         view.visibility = if (view.isVisible) View.GONE else View.VISIBLE
     }
 
-    private fun restartMainActivity() {
-        val intent = Intent(this, MainActivity::class.java)
+    private fun restartHomeActivity() {
+        val intent = Intent(this, HomeActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(intent)
         finish()

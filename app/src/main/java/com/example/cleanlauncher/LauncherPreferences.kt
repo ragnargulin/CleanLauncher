@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 
-class LauncherPreferences(context: Context) {
+class LauncherPreferences private constructor(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences(
         "launcher_prefs", Context.MODE_PRIVATE
     )
@@ -20,13 +20,13 @@ class LauncherPreferences(context: Context) {
     fun addFavorite(packageName: String) {
         val favorites = getFavorites().toMutableSet()
         favorites.add(packageName)
-        prefs.edit(commit = true) { putStringSet(KEY_FAVORITES, favorites) }
+        prefs.edit { putStringSet(KEY_FAVORITES, favorites) }
     }
 
     fun removeFavorite(packageName: String) {
         val favorites = getFavorites().toMutableSet()
         favorites.remove(packageName)
-        prefs.edit(commit = true) { putStringSet(KEY_FAVORITES, favorites) }
+        prefs.edit { putStringSet(KEY_FAVORITES, favorites) }
     }
 
     fun getFavorites(): Set<String> {
@@ -34,16 +34,18 @@ class LauncherPreferences(context: Context) {
     }
 
     fun hideApp(packageName: String) {
-        removeFavorite(packageName)  // Ensure it's not a favorite
         val hiddenApps = getHiddenApps().toMutableSet()
         hiddenApps.add(packageName)
-        prefs.edit(commit = true) { putStringSet(KEY_HIDDEN, hiddenApps) }
+        prefs.edit {
+            putStringSet(KEY_HIDDEN, hiddenApps)
+            removeFavorite(packageName) // Remove from favorites if hidden
+        }
     }
 
     fun unhideApp(packageName: String) {
         val hiddenApps = getHiddenApps().toMutableSet()
         hiddenApps.remove(packageName)
-        prefs.edit(commit = true) { putStringSet(KEY_HIDDEN, hiddenApps) }
+        prefs.edit { putStringSet(KEY_HIDDEN, hiddenApps) }
     }
 
     fun getHiddenApps(): Set<String> {
@@ -51,7 +53,7 @@ class LauncherPreferences(context: Context) {
     }
 
     fun setCustomName(packageName: String, customName: String) {
-        prefs.edit(commit = true) { putString("$KEY_CUSTOM_NAME$packageName", customName) }
+        prefs.edit { putString("$KEY_CUSTOM_NAME$packageName", customName) }
     }
 
     fun getCustomName(packageName: String): String? {
@@ -86,13 +88,22 @@ class LauncherPreferences(context: Context) {
     }
 
     companion object {
-        const val KEY_FAVORITES = "favorites"
+        private const val KEY_FAVORITES = "favorites"
         private const val KEY_CUSTOM_NAME = "custom_name_"
-        const val KEY_HIDDEN = "hidden_apps"
-        const val KEY_FONT_SIZE = "font_size"
-        const val KEY_STATUS_BAR_VISIBLE = "status_bar_visible"
-        const val KEY_DARK_MODE = "dark_mode"
-        const val KEY_APP_NAME_TEXT_STYLE = "app_name_text_style"
+        private const val KEY_HIDDEN = "hidden_apps"
+        private const val KEY_FONT_SIZE = "font_size"
+        private const val KEY_STATUS_BAR_VISIBLE = "status_bar_visible"
+        private const val KEY_DARK_MODE = "dark_mode"
+        private const val KEY_APP_NAME_TEXT_STYLE = "app_name_text_style"
+
+        @Volatile
+        private var INSTANCE: LauncherPreferences? = null
+
+        fun getInstance(context: Context): LauncherPreferences {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: LauncherPreferences(context.applicationContext).also { INSTANCE = it }
+            }
+        }
     }
 }
 
