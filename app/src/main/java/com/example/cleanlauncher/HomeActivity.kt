@@ -1,11 +1,16 @@
 package com.example.cleanlauncher
 
+import android.content.Context
 import android.content.Intent
+import android.graphics.Rect
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.TypedValue
+import android.view.MotionEvent
 import android.view.View
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
@@ -45,8 +50,29 @@ class HomeActivity : AppCompatActivity() {
         updateAppLists(lastKnownFontSize ?: FontSize.MEDIUM)
         displayFavoriteApps()
 
+
+
     }
 
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        if (ev.action == MotionEvent.ACTION_DOWN) {
+            val v = currentFocus
+            if (v is EditText) {
+                val outRect = Rect()
+                v.getGlobalVisibleRect(outRect)
+                if (!outRect.contains(ev.rawX.toInt(), ev.rawY.toInt())) {
+                    v.clearFocus()
+                    hideKeyboard()
+                }
+            }
+        }
+        return super.dispatchTouchEvent(ev)
+    }
+
+    private fun hideKeyboard() {
+        val inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.hideSoftInputFromWindow(binding.root.windowToken, 0)
+    }
 
     override fun onPause() {
         super.onPause()
