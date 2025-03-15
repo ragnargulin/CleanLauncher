@@ -17,7 +17,6 @@ class AppAdapter(
     private val fontSize: FontSize = FontSize.MEDIUM,
     private val launcherPreferences: LauncherPreferences,
     private val showAppState: Boolean = false
-
 ) : RecyclerView.Adapter<AppAdapter.ViewHolder>() {
 
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -36,69 +35,67 @@ class AppAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         when (val item = items[position]) {
-            is LauncherItem.App -> {
-                holder.itemView.layoutParams = RecyclerView.LayoutParams(
-                    RecyclerView.LayoutParams.MATCH_PARENT,
-                    RecyclerView.LayoutParams.WRAP_CONTENT
-                )
-
-                // Determine the app state symbol
-                val stateSymbol = when (item.appInfo.state) {
-                    AppState.FAVORITE -> "\u2764" // Unicode for heart
-                    AppState.HIDDEN -> "\uD83D\uDC7B" // Unicode for ghost
-                    AppState.NEITHER -> "" // No symbol for NEITHER
-                }
-
-                // Set the app state text and visibility based on showAppState flag
-                if (showAppState) {
-                    holder.appStateView.text = stateSymbol
-                    holder.appStateView.visibility = if (stateSymbol.isNotEmpty()) View.VISIBLE else View.GONE
-                } else {
-                    holder.appStateView.visibility = View.GONE
-                }
-
-                // Get the user's preference for app name text style
-                val textStyle = launcherPreferences.getAppNameTextStyle()
-                val appName = item.appInfo.displayName()
-
-                // Apply the text style
-                holder.appNameView.text = when (textStyle) {
-                    AppNameTextStyle.ALL_LOWERCASE -> appName.lowercase(Locale.getDefault())
-                    AppNameTextStyle.LEADING_UPPERCASE -> appName.replaceFirstChar { it.uppercase(Locale.getDefault()) }
-                }
-
-                holder.appNameView.textSize = fontSize.textSize
-
-                // Show time only for clock app in favorites list
-                if (isFavoritesList && (item.appInfo.packageName == "com.android.deskclock" ||
-                            item.appInfo.packageName == "com.google.android.deskclock")) {
-                    holder.timeView.text = timeFormat.format(Date())
-                    holder.timeView.textSize = fontSize.textSize
-                    holder.timeView.visibility = View.VISIBLE
-                } else {
-                    holder.timeView.visibility = View.GONE
-                }
-
-                holder.itemView.setOnClickListener { onItemClick(item) }
-                holder.itemView.setOnLongClickListener { view -> onItemLongClick(item, view) }
-            }
-            LauncherItem.AllApps -> {
-                holder.itemView.layoutParams = RecyclerView.LayoutParams(
-                    RecyclerView.LayoutParams.MATCH_PARENT,
-                    RecyclerView.LayoutParams.WRAP_CONTENT
-                )
-                holder.appNameView.text = holder.itemView.context.getString(R.string.all_apps)
-                holder.appNameView.textSize = fontSize.textSize
-                holder.timeView.visibility = View.GONE
-                holder.itemView.setOnClickListener { onItemClick(item) }
-                holder.itemView.setOnLongClickListener(null)
-            }
+            is LauncherItem.App -> bindAppItem(holder, item)
+            LauncherItem.AllApps -> bindAllAppsItem(holder)
         }
+    }
+
+    private fun bindAppItem(holder: ViewHolder, item: LauncherItem.App) {
+        holder.itemView.layoutParams = RecyclerView.LayoutParams(
+            RecyclerView.LayoutParams.MATCH_PARENT,
+            RecyclerView.LayoutParams.WRAP_CONTENT
+        )
+
+        val stateSymbol = when (item.appInfo.state) {
+            AppState.FAVORITE -> "\u2764" // Unicode for heart
+            AppState.HIDDEN -> "\uD83D\uDC7B" // Unicode for ghost
+            AppState.NEITHER -> "" // No symbol for NEITHER
+        }
+
+        if (showAppState) {
+            holder.appStateView.text = stateSymbol
+            holder.appStateView.visibility = if (stateSymbol.isNotEmpty()) View.VISIBLE else View.GONE
+        } else {
+            holder.appStateView.visibility = View.GONE
+        }
+
+        val textStyle = launcherPreferences.getAppNameTextStyle()
+        val appName = item.appInfo.displayName()
+
+        holder.appNameView.text = when (textStyle) {
+            AppNameTextStyle.ALL_LOWERCASE -> appName.lowercase(Locale.getDefault())
+            AppNameTextStyle.LEADING_UPPERCASE -> appName.replaceFirstChar { it.uppercase(Locale.getDefault()) }
+        }
+
+        holder.appNameView.textSize = fontSize.textSize
+
+        if (isFavoritesList && (item.appInfo.packageName == "com.android.deskclock" ||
+                    item.appInfo.packageName == "com.google.android.deskclock")) {
+            holder.timeView.text = timeFormat.format(Date())
+            holder.timeView.textSize = fontSize.textSize
+            holder.timeView.visibility = View.VISIBLE
+        } else {
+            holder.timeView.visibility = View.GONE
+        }
+
+        holder.itemView.setOnClickListener { onItemClick(item) }
+        holder.itemView.setOnLongClickListener { view -> onItemLongClick(item, view) }
+    }
+
+    private fun bindAllAppsItem(holder: ViewHolder) {
+        holder.itemView.layoutParams = RecyclerView.LayoutParams(
+            RecyclerView.LayoutParams.MATCH_PARENT,
+            RecyclerView.LayoutParams.WRAP_CONTENT
+        )
+        holder.appNameView.text = holder.itemView.context.getString(R.string.all_apps)
+        holder.appNameView.textSize = fontSize.textSize
+        holder.timeView.visibility = View.GONE
+        holder.itemView.setOnClickListener { onItemClick(LauncherItem.AllApps) }
+        holder.itemView.setOnLongClickListener(null)
     }
 
     override fun getItemCount() = items.size
 
-    // Method to update the list of items
     fun updateList(newItems: List<LauncherItem>) {
         items = newItems
         notifyDataSetChanged()

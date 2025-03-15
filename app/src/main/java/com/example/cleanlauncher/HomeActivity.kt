@@ -9,7 +9,6 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.DrawableCompat.applyTheme
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -26,43 +25,36 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         launcherPreferences = LauncherPreferences.getInstance(this)
-applyTheme()
-        // In HomeActivity
+
+        // Adjust padding for status bar
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
             val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
             view.setPadding(0, statusBarHeight, 0, 0)
             insets
         }
-        binding.favoriteApps.apply {
-            layoutManager = LinearLayoutManager(this@HomeActivity)
-            addItemDecoration(createDivider())
-            overScrollMode = View.OVER_SCROLL_NEVER
-
-        }
-
-        // In HomeActivity
-        binding.settingsIcon.setOnClickListener {
-            val intent = Intent(this, SettingsActivity::class.java)
-            startActivity(intent)
-        }
-
-        binding.searchBar.addTextChangedListener(createTextWatcher())
-        binding.searchBar.setCursorVisible(false)
+        applyTheme()
+        setupRecyclerView()
+        setupSearchBar()
+        setupSettingsButton()
 
         lastKnownFontSize = launcherPreferences.getFontSize()
         updateAppLists(lastKnownFontSize ?: FontSize.MEDIUM)
         displayFavoriteApps()
+
     }
 
+
+    override fun onPause() {
+        super.onPause()
+        binding.searchBar.clearFocus()
+
+    }
     override fun onResume() {
         super.onResume()
-
         val currentFontSize = launcherPreferences.getFontSize()
         if (currentFontSize != lastKnownFontSize) {
             lastKnownFontSize = currentFontSize
@@ -71,15 +63,41 @@ applyTheme()
         }
         updateAppLists(currentFontSize)
         applyTheme()
-
         binding.searchBar.setText("")
+
     }
 
     private fun applyTheme() {
-        if (launcherPreferences.isDarkMode()) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+        val desiredMode = if (launcherPreferences.isDarkMode()) {
+            AppCompatDelegate.MODE_NIGHT_YES
         } else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            AppCompatDelegate.MODE_NIGHT_NO
+        }
+        if (AppCompatDelegate.getDefaultNightMode() != desiredMode) {
+            AppCompatDelegate.setDefaultNightMode(desiredMode)
+        }
+    }
+
+    private fun setupRecyclerView() {
+        binding.favoriteApps.apply {
+            layoutManager = LinearLayoutManager(this@HomeActivity)
+            addItemDecoration(createDivider())
+            overScrollMode = View.OVER_SCROLL_NEVER
+        }
+
+        binding.searchResults.apply {
+            layoutManager = LinearLayoutManager(this@HomeActivity)
+            addItemDecoration(createDivider())
+            overScrollMode = View.OVER_SCROLL_NEVER
+        }
+    }
+    private fun setupSearchBar() {
+        binding.searchBar.addTextChangedListener(createTextWatcher())
+    }
+
+    private fun setupSettingsButton() {
+        binding.settingsIcon.setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
         }
     }
 
@@ -93,7 +111,6 @@ applyTheme()
 
     private fun updateAppLists(fontSize: FontSize) {
         binding.searchBar.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize.textSize)
-
         val apps = AppUtils.getInstalledApps(this, launcherPreferences)
         cachedFavoriteApps = apps.filter { it.state == AppState.FAVORITE }.map { LauncherItem.App(it) }
         cachedAllApps = apps.map { LauncherItem.App(it) }
@@ -120,7 +137,19 @@ applyTheme()
             it.appInfo.name.startsWith(query, ignoreCase = true)
         } ?: emptyList()
 
-        (binding.favoriteApps.adapter as? AppAdapter)?.updateList(filteredList)
+        binding.searchResults.adapter = AppAdapter(
+            items = filteredList,
+            onItemClick = { item ->
+                if (item is LauncherItem.App) {
+                    AppUtils.launchApp(this, item.appInfo.packageName)
+                }
+            },
+            onItemLongClick = { item, _ -> item is LauncherItem.App },
+            isFavoritesList = false,
+            fontSize = lastKnownFontSize ?: FontSize.MEDIUM,
+            launcherPreferences = launcherPreferences,
+            showAppState = false
+        )
     }
 
     private fun createTextWatcher(): TextWatcher {
@@ -128,10 +157,13 @@ applyTheme()
             override fun afterTextChanged(s: Editable?) {
                 if (s.isNullOrEmpty()) {
                     displayFavoriteApps()
+                    binding.favoriteApps.visibility = View.VISIBLE
+                    binding.searchResults.visibility = View.GONE
                 } else {
                     filterApps(s.toString())
+                    binding.favoriteApps.visibility = View.GONE
+                    binding.searchResults.visibility = View.VISIBLE
                 }
-
             }
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}

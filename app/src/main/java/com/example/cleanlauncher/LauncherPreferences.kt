@@ -9,9 +9,7 @@ class LauncherPreferences private constructor(context: Context) {
         "launcher_prefs", Context.MODE_PRIVATE
     )
 
-    fun isStatusBarVisible(): Boolean {
-        return prefs.getBoolean(KEY_STATUS_BAR_VISIBLE, true)
-    }
+    fun isStatusBarVisible(): Boolean = prefs.getBoolean(KEY_STATUS_BAR_VISIBLE, true)
 
     fun setStatusBarVisible(isVisible: Boolean) {
         prefs.edit { putBoolean(KEY_STATUS_BAR_VISIBLE, isVisible) }
@@ -29,16 +27,14 @@ class LauncherPreferences private constructor(context: Context) {
         prefs.edit { putStringSet(KEY_FAVORITES, favorites) }
     }
 
-    fun getFavorites(): Set<String> {
-        return prefs.getStringSet(KEY_FAVORITES, emptySet()) ?: emptySet()
-    }
+    fun getFavorites(): Set<String> = prefs.getStringSet(KEY_FAVORITES, emptySet()) ?: emptySet()
 
     fun hideApp(packageName: String) {
         val hiddenApps = getHiddenApps().toMutableSet()
         hiddenApps.add(packageName)
         prefs.edit {
             putStringSet(KEY_HIDDEN, hiddenApps)
-            removeFavorite(packageName) // Remove from favorites if hidden
+            removeFavorite(packageName)
         }
     }
 
@@ -48,17 +44,13 @@ class LauncherPreferences private constructor(context: Context) {
         prefs.edit { putStringSet(KEY_HIDDEN, hiddenApps) }
     }
 
-    fun getHiddenApps(): Set<String> {
-        return prefs.getStringSet(KEY_HIDDEN, emptySet()) ?: emptySet()
-    }
+    fun getHiddenApps(): Set<String> = prefs.getStringSet(KEY_HIDDEN, emptySet()) ?: emptySet()
 
     fun setCustomName(packageName: String, customName: String) {
         prefs.edit { putString("$KEY_CUSTOM_NAME$packageName", customName) }
     }
 
-    fun getCustomName(packageName: String): String? {
-        return prefs.getString("$KEY_CUSTOM_NAME$packageName", null)
-    }
+    fun getCustomName(packageName: String): String? = prefs.getString("$KEY_CUSTOM_NAME$packageName", null)
 
     fun setFontSize(size: FontSize) {
         prefs.edit { putString(KEY_FONT_SIZE, size.name) }
@@ -74,9 +66,7 @@ class LauncherPreferences private constructor(context: Context) {
         prefs.edit { putBoolean(KEY_DARK_MODE, !isDarkMode) }
     }
 
-    fun isDarkMode(): Boolean {
-        return prefs.getBoolean(KEY_DARK_MODE, true) // Default to dark mode
-    }
+    fun isDarkMode(): Boolean = prefs.getBoolean(KEY_DARK_MODE, true)
 
     fun setAppNameTextStyle(style: AppNameTextStyle) {
         prefs.edit { putString(KEY_APP_NAME_TEXT_STYLE, style.name) }
