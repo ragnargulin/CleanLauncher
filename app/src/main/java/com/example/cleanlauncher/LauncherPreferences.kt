@@ -4,59 +4,72 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 
-class LauncherPreferences(context: Context) {
+class LauncherPreferences private constructor(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences(
         "launcher_prefs", Context.MODE_PRIVATE
     )
-
-    fun isStatusBarVisible(): Boolean {
-        return prefs.getBoolean(KEY_STATUS_BAR_VISIBLE, true)
-    }
+    fun isStatusBarVisible(): Boolean = prefs.getBoolean(KEY_STATUS_BAR_VISIBLE, true)
 
     fun setStatusBarVisible(isVisible: Boolean) {
         prefs.edit { putBoolean(KEY_STATUS_BAR_VISIBLE, isVisible) }
     }
 
     fun addFavorite(packageName: String) {
-        val favorites = getFavorites().toMutableSet()
-        favorites.add(packageName)
-        prefs.edit(commit = true) { putStringSet(KEY_FAVORITES, favorites) }
+        updateAppState(packageName, KEY_FAVORITES)
     }
 
     fun removeFavorite(packageName: String) {
-        val favorites = getFavorites().toMutableSet()
-        favorites.remove(packageName)
-        prefs.edit(commit = true) { putStringSet(KEY_FAVORITES, favorites) }
+        removeAppState(packageName, KEY_FAVORITES)
     }
 
-    fun getFavorites(): Set<String> {
-        return prefs.getStringSet(KEY_FAVORITES, emptySet()) ?: emptySet()
-    }
+    fun getFavorites(): Set<String> = prefs.getStringSet(KEY_FAVORITES, emptySet()) ?: emptySet()
 
     fun hideApp(packageName: String) {
-        removeFavorite(packageName)  // Ensure it's not a favorite
-        val hiddenApps = getHiddenApps().toMutableSet()
-        hiddenApps.add(packageName)
-        prefs.edit(commit = true) { putStringSet(KEY_HIDDEN, hiddenApps) }
+        updateAppState(packageName, KEY_HIDDEN)
     }
 
     fun unhideApp(packageName: String) {
-        val hiddenApps = getHiddenApps().toMutableSet()
-        hiddenApps.remove(packageName)
-        prefs.edit(commit = true) { putStringSet(KEY_HIDDEN, hiddenApps) }
+        removeAppState(packageName, KEY_HIDDEN)
     }
 
-    fun getHiddenApps(): Set<String> {
-        return prefs.getStringSet(KEY_HIDDEN, emptySet()) ?: emptySet()
+    fun getHiddenApps(): Set<String> = prefs.getStringSet(KEY_HIDDEN, emptySet()) ?: emptySet()
+
+    fun markAsBad(packageName: String) {
+        updateAppState(packageName, KEY_BAD)
+    }
+
+    fun removeBad(packageName: String) {
+        removeAppState(packageName, KEY_BAD)
+    }
+
+    fun getBadApps(): Set<String> = prefs.getStringSet(KEY_BAD, emptySet()) ?: emptySet()
+
+    private fun updateAppState(packageName: String, key: String) {
+        clearAllStates(packageName)
+        val apps = prefs.getStringSet(key, emptySet())?.toMutableSet() ?: mutableSetOf()
+        apps.add(packageName)
+        prefs.edit { putStringSet(key, apps) }
+    }
+
+    private fun removeAppState(packageName: String, key: String) {
+        val apps = prefs.getStringSet(key, emptySet())?.toMutableSet() ?: mutableSetOf()
+        apps.remove(packageName)
+        prefs.edit { putStringSet(key, apps) }
+    }
+
+    private fun clearAllStates(packageName: String) {
+        prefs.edit {
+            removeAppState(packageName, KEY_FAVORITES)
+            removeAppState(packageName, KEY_HIDDEN)
+            removeAppState(packageName, KEY_BAD)
+        }
     }
 
     fun setCustomName(packageName: String, customName: String) {
-        prefs.edit(commit = true) { putString("$KEY_CUSTOM_NAME$packageName", customName) }
+        prefs.edit { putString("$KEY_CUSTOM_NAME$packageName", customName) }
     }
 
-    fun getCustomName(packageName: String): String? {
-        return prefs.getString("$KEY_CUSTOM_NAME$packageName", null)
-    }
+    fun getCustomName(packageName: String): String? = prefs.getString("$KEY_CUSTOM_NAME$packageName", null)
 
     fun setFontSize(size: FontSize) {
         prefs.edit { putString(KEY_FONT_SIZE, size.name) }
@@ -65,15 +78,6 @@ class LauncherPreferences(context: Context) {
     fun getFontSize(): FontSize {
         val name = prefs.getString(KEY_FONT_SIZE, FontSize.MEDIUM.name)
         return FontSize.valueOf(name ?: FontSize.MEDIUM.name)
-    }
-
-    fun toggleTheme() {
-        val isDarkMode = isDarkMode()
-        prefs.edit { putBoolean(KEY_DARK_MODE, !isDarkMode) }
-    }
-
-    fun isDarkMode(): Boolean {
-        return prefs.getBoolean(KEY_DARK_MODE, true) // Default to dark mode
     }
 
     fun setAppNameTextStyle(style: AppNameTextStyle) {
@@ -86,15 +90,26 @@ class LauncherPreferences(context: Context) {
     }
 
     companion object {
-        const val KEY_FAVORITES = "favorites"
+        private const val KEY_FAVORITES = "favorites"
         private const val KEY_CUSTOM_NAME = "custom_name_"
-        const val KEY_HIDDEN = "hidden_apps"
-        const val KEY_FONT_SIZE = "font_size"
-        const val KEY_STATUS_BAR_VISIBLE = "status_bar_visible"
-        const val KEY_DARK_MODE = "dark_mode"
-        const val KEY_APP_NAME_TEXT_STYLE = "app_name_text_style"
+        private const val KEY_HIDDEN = "hidden_apps"
+        private const val KEY_BAD = "bad_apps"
+        private const val KEY_FONT_SIZE = "font_size"
+        private const val KEY_STATUS_BAR_VISIBLE = "status_bar_visible"
+        private const val KEY_APP_NAME_TEXT_STYLE = "app_name_text_style"
+
+        @Volatile
+        private var INSTANCE: LauncherPreferences? = null
+
+        fun getInstance(context: Context): LauncherPreferences {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: LauncherPreferences(context.applicationContext).also { INSTANCE = it }
+            }
+        }
     }
 }
+
+
 
 enum class FontSize(val textSize: Float) {
     SMALL(20f),

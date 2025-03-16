@@ -14,5 +14,6 @@ data class AppInfo(
 enum class AppState {
     FAVORITE,
     HIDDEN,
-    NEITHER
+    NEITHER,
+    BAD
 }

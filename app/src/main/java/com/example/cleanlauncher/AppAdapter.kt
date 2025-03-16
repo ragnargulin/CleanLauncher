@@ -1,6 +1,9 @@
 package com.example.cleanlauncher
 
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -16,8 +19,8 @@ class AppAdapter(
     private val isFavoritesList: Boolean = false,
     private val fontSize: FontSize = FontSize.MEDIUM,
     private val launcherPreferences: LauncherPreferences,
-    private val showAppState: Boolean = false
-
+    private val showAppState: Boolean = false,
+    private val isSettingsContext: Boolean = false
 ) : RecyclerView.Adapter<AppAdapter.ViewHolder>() {
 
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -36,71 +39,100 @@ class AppAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         when (val item = items[position]) {
-            is LauncherItem.App -> {
-                holder.itemView.layoutParams = RecyclerView.LayoutParams(
-                    RecyclerView.LayoutParams.MATCH_PARENT,
-                    RecyclerView.LayoutParams.WRAP_CONTENT
-                )
+            is LauncherItem.App -> bindAppItem(holder, item)
+            LauncherItem.AllApps -> bindAllAppsItem(holder)
+        }
+    }
 
-                // Determine the app state symbol
-                val stateSymbol = when (item.appInfo.state) {
-                    AppState.FAVORITE -> "\u2764" // Unicode for heart
-                    AppState.HIDDEN -> "\uD83D\uDC7B" // Unicode for ghost
-                    AppState.NEITHER -> "" // No symbol for NEITHER
+    private fun bindAppItem(holder: ViewHolder, item: LauncherItem.App) {
+        holder.itemView.layoutParams = RecyclerView.LayoutParams(
+            RecyclerView.LayoutParams.MATCH_PARENT,
+            RecyclerView.LayoutParams.WRAP_CONTENT
+        )
+
+        val stateSymbol = when (item.appInfo.state) {
+            AppState.FAVORITE -> "\u2764" // Unicode for heart
+            AppState.HIDDEN -> "\uD83D\uDC7B" // Unicode for ghost
+            AppState.NEITHER -> "" // No symbol for NEITHER
+            AppState.BAD -> "\uD83D\uDC80" // Unicode for bad
+        }
+
+        if (showAppState) {
+            holder.appStateView.text = stateSymbol
+            holder.appStateView.visibility = if (stateSymbol.isNotEmpty()) View.VISIBLE else View.GONE
+        } else {
+            holder.appStateView.visibility = View.GONE
+        }
+
+        val textStyle = launcherPreferences.getAppNameTextStyle()
+        val appName = item.appInfo.displayName()
+
+        holder.appNameView.text = when (textStyle) {
+            AppNameTextStyle.ALL_LOWERCASE -> appName.lowercase(Locale.getDefault())
+            AppNameTextStyle.LEADING_UPPERCASE -> appName.replaceFirstChar { it.uppercase(Locale.getDefault()) }
+        }
+
+        holder.appNameView.textSize = fontSize.textSize
+
+
+        // Set text color only for BAD apps
+        if (item.appInfo.state == AppState.BAD) {
+            holder.appNameView.setTextColor(holder.itemView.context.getColor(R.color.grey))
+        }
+
+
+        if (isFavoritesList && (item.appInfo.packageName == "com.android.deskclock" ||
+                    item.appInfo.packageName == "com.google.android.deskclock")) {
+            holder.timeView.text = timeFormat.format(Date())
+            holder.timeView.textSize = fontSize.textSize
+            holder.timeView.visibility = View.VISIBLE
+        } else {
+            holder.timeView.visibility = View.GONE
+        }
+
+        // Custom long press logic for BAD apps
+        if (isSettingsContext) {
+            // In settings, long press opens app settings
+            holder.itemView.setOnClickListener { onItemClick(item) }
+            holder.itemView.setOnLongClickListener { view -> onItemLongClick(item, view) }
+        } else {
+            // Custom long press logic for BAD apps
+            if (item.appInfo.state == AppState.BAD) {
+                val handler = Handler(Looper.getMainLooper())
+                val longPressRunnable = Runnable { onItemClick(item) }
+                val longPressTimeout = 7000L // Custom long press duration in milliseconds
+
+                holder.itemView.setOnTouchListener { _, event ->
+                    when (event.action) {
+                        MotionEvent.ACTION_DOWN -> {
+                            handler.postDelayed(longPressRunnable, longPressTimeout)
+                        }
+                        MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                            handler.removeCallbacks(longPressRunnable)
+                        }
+                    }
+                    true
                 }
-
-                // Set the app state text and visibility based on showAppState flag
-                if (showAppState) {
-                    holder.appStateView.text = stateSymbol
-                    holder.appStateView.visibility = if (stateSymbol.isNotEmpty()) View.VISIBLE else View.GONE
-                } else {
-                    holder.appStateView.visibility = View.GONE
-                }
-
-                // Get the user's preference for app name text style
-                val textStyle = launcherPreferences.getAppNameTextStyle()
-                val appName = item.appInfo.displayName()
-
-                // Apply the text style
-                holder.appNameView.text = when (textStyle) {
-                    AppNameTextStyle.ALL_LOWERCASE -> appName.lowercase(Locale.getDefault())
-                    AppNameTextStyle.LEADING_UPPERCASE -> appName.replaceFirstChar { it.uppercase(Locale.getDefault()) }
-                }
-
-                holder.appNameView.textSize = fontSize.textSize
-
-                // Show time only for clock app in favorites list
-                if (isFavoritesList && (item.appInfo.packageName == "com.android.deskclock" ||
-                            item.appInfo.packageName == "com.google.android.deskclock")) {
-                    holder.timeView.text = timeFormat.format(Date())
-                    holder.timeView.textSize = fontSize.textSize
-                    holder.timeView.visibility = View.VISIBLE
-                } else {
-                    holder.timeView.visibility = View.GONE
-                }
-
+            } else {
+                // Normal click for other apps
                 holder.itemView.setOnClickListener { onItemClick(item) }
                 holder.itemView.setOnLongClickListener { view -> onItemLongClick(item, view) }
-            }
-            LauncherItem.AllApps -> {
-                holder.itemView.layoutParams = RecyclerView.LayoutParams(
-                    RecyclerView.LayoutParams.MATCH_PARENT,
-                    RecyclerView.LayoutParams.WRAP_CONTENT
-                )
-                holder.appNameView.text = holder.itemView.context.getString(R.string.all_apps)
-                holder.appNameView.textSize = fontSize.textSize
-                holder.timeView.visibility = View.GONE
-                holder.itemView.setOnClickListener { onItemClick(item) }
-                holder.itemView.setOnLongClickListener(null)
             }
         }
     }
 
-    override fun getItemCount() = items.size
+    private fun bindAllAppsItem(holder: ViewHolder) {
+        holder.itemView.layoutParams = RecyclerView.LayoutParams(
+            RecyclerView.LayoutParams.MATCH_PARENT,
+            RecyclerView.LayoutParams.WRAP_CONTENT
+        )
 
-    // Method to update the list of items
-    fun updateList(newItems: List<LauncherItem>) {
-        items = newItems
-        notifyDataSetChanged()
+        holder.appNameView.text = holder.itemView.context.getString(R.string.all_apps)
+        holder.appNameView.textSize = fontSize.textSize
+        holder.timeView.visibility = View.GONE
+        holder.itemView.setOnClickListener { onItemClick(LauncherItem.AllApps) }
+        holder.itemView.setOnLongClickListener(null)
     }
+
+    override fun getItemCount() = items.size
 }

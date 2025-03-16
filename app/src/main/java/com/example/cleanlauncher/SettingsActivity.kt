@@ -10,7 +10,6 @@ import android.widget.EditText
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
@@ -24,11 +23,11 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Inflate the layout using View Binding
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        launcherPreferences = LauncherPreferences(this)
+        // Use singleton instance
+        launcherPreferences = LauncherPreferences.getInstance(this)
 
         initializeViews()
         setupInitialStates()
@@ -44,33 +43,40 @@ class SettingsActivity : AppCompatActivity() {
         binding.statusBarToggle.isChecked = launcherPreferences.isStatusBarVisible()
         setStatusBarVisibility(binding.statusBarToggle.isChecked)
 
-        binding.themeToggle.isChecked = launcherPreferences.isDarkMode()
-
         binding.lowerCaseToggle.isChecked = launcherPreferences.getAppNameTextStyle() == AppNameTextStyle.LEADING_UPPERCASE
 
         setupFontSizeSelector()
     }
 
     private fun setupListeners() {
+        setupToggleListeners()
+        setupCollapsibleSectionListeners()
+    }
+
+    private fun setupToggleListeners() {
         binding.statusBarToggle.setOnCheckedChangeListener { _, isChecked ->
             launcherPreferences.setStatusBarVisible(isChecked)
             setStatusBarVisibility(isChecked)
-        }
-
-        binding.themeToggle.setOnCheckedChangeListener { _, isChecked ->
-            launcherPreferences.toggleTheme()
-            AppCompatDelegate.setDefaultNightMode(
-                if (isChecked) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
-            )
-            recreate()
         }
 
         binding.lowerCaseToggle.setOnCheckedChangeListener { _, isChecked ->
             val newStyle = if (isChecked) AppNameTextStyle.LEADING_UPPERCASE else AppNameTextStyle.ALL_LOWERCASE
             launcherPreferences.setAppNameTextStyle(newStyle)
         }
+    }
 
-        setupCollapsibleSections()
+    private fun setupCollapsibleSectionListeners() {
+        binding.fontSizeHeader.setOnClickListener {
+            toggleVisibility(binding.fontSizeGroup)
+        }
+
+        binding.togglesHeader.setOnClickListener {
+            toggleVisibility(binding.togglesContainer)
+        }
+
+        binding.allAppsHeader.setOnClickListener {
+            toggleVisibility(binding.hiddenApps)
+        }
     }
 
     private fun setStatusBarVisibility(isVisible: Boolean) {
@@ -102,21 +108,7 @@ class SettingsActivity : AppCompatActivity() {
                 else -> FontSize.MEDIUM
             }
             launcherPreferences.setFontSize(newSize)
-            restartMainActivity()
-        }
-    }
-
-    private fun setupCollapsibleSections() {
-        binding.fontSizeHeader.setOnClickListener {
-            toggleVisibility(binding.fontSizeGroup)
-        }
-
-        binding.togglesHeader.setOnClickListener {
-            toggleVisibility(binding.togglesContainer)
-        }
-
-        binding.allAppsHeader.setOnClickListener {
-            toggleVisibility(binding.hiddenApps)
+            restartHomeActivity()
         }
     }
 
@@ -124,8 +116,8 @@ class SettingsActivity : AppCompatActivity() {
         view.visibility = if (view.isVisible) View.GONE else View.VISIBLE
     }
 
-    private fun restartMainActivity() {
-        val intent = Intent(this, MainActivity::class.java)
+    private fun restartHomeActivity() {
+        val intent = Intent(this, HomeActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(intent)
         finish()
@@ -144,6 +136,9 @@ class SettingsActivity : AppCompatActivity() {
 
             val isHidden = app.appInfo.state == AppState.HIDDEN
             menu.add(if (isHidden) "Unhide App" else "Hide App")
+
+            val isBad = launcherPreferences.getBadApps().contains(app.appInfo.packageName)
+            menu.add(if (isBad) "Unmark as BAD" else "Mark as BAD")
 
             menu.add("Rename")
             menu.add("App Info")
@@ -191,6 +186,18 @@ class SettingsActivity : AppCompatActivity() {
                 updateList()
                 true
             }
+            "Mark as BAD" -> {
+                launcherPreferences.markAsBad(app.appInfo.packageName)
+                showToast(context, "${app.appInfo.displayName()} marked as BAD")
+                updateList()
+                true
+            }
+            "Unmark as BAD" -> {
+                launcherPreferences.removeBad(app.appInfo.packageName)
+                showToast(context, "${app.appInfo.displayName()} unmarked as BAD")
+                updateList()
+                true
+            }
             "App Info" -> {
                 openAppInfo(context, app.appInfo.packageName)
                 true
@@ -235,12 +242,34 @@ class SettingsActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun updateHiddenAppsList() {
-        val allApps = AppUtils.getInstalledApps(this, launcherPreferences)
-            .map { LauncherItem.App(it) }
+    private fun updateAppStates(apps: List<AppInfo>, launcherPreferences: LauncherPreferences) {
+        val favorites = launcherPreferences.getFavorites()
+        val hiddenApps = launcherPreferences.getHiddenApps()
+        val badApps = launcherPreferences.getBadApps()
 
+        apps.forEach { appInfo ->
+            appInfo.state = when {
+                badApps.contains(appInfo.packageName) -> AppState.BAD
+                favorites.contains(appInfo.packageName) -> AppState.FAVORITE
+                hiddenApps.contains(appInfo.packageName) -> AppState.HIDDEN
+                else -> AppState.NEITHER
+            }
+        }
+    }
+
+    private fun updateHiddenAppsList() {
+        // Get all installed apps as a list of AppInfo
+        val allApps = AppUtils.getInstalledApps(this, launcherPreferences)
+
+        // Update the states of these apps based on preferences
+        updateAppStates(allApps, launcherPreferences)
+
+        // Convert the list of AppInfo to a list of LauncherItem.App
+        val launcherItems = allApps.map { LauncherItem.App(it) }
+
+        // Set the adapter with the updated list
         binding.hiddenApps.adapter = AppAdapter(
-            items = allApps,
+            items = launcherItems,
             onItemClick = { /* Do nothing */ },
             onItemLongClick = { item, view ->
                 if (item is LauncherItem.App) {
@@ -257,7 +286,8 @@ class SettingsActivity : AppCompatActivity() {
             isFavoritesList = false,
             fontSize = launcherPreferences.getFontSize(),
             launcherPreferences = launcherPreferences,
-            showAppState = true
+            showAppState = true,
+            isSettingsContext = true
         )
     }
 }
