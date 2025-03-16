@@ -30,6 +30,7 @@ object AppUtils {
         return when {
             launcherPreferences.getFavorites().contains(packageName) -> AppState.FAVORITE
             launcherPreferences.getHiddenApps().contains(packageName) -> AppState.HIDDEN
+            launcherPreferences.getHiddenApps().contains(packageName) -> AppState.BAD
             else -> AppState.NEITHER
         }
     }

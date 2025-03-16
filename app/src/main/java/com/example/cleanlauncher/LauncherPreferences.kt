@@ -8,7 +8,6 @@ class LauncherPreferences private constructor(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences(
         "launcher_prefs", Context.MODE_PRIVATE
     )
-
     fun isStatusBarVisible(): Boolean = prefs.getBoolean(KEY_STATUS_BAR_VISIBLE, true)
 
     fun setStatusBarVisible(isVisible: Boolean) {
@@ -16,54 +15,54 @@ class LauncherPreferences private constructor(context: Context) {
     }
 
     fun addFavorite(packageName: String) {
-        clearAllStates(packageName)
-        val favorites = getFavorites().toMutableSet()
-        favorites.add(packageName)
-        prefs.edit { putStringSet(KEY_FAVORITES, favorites) }
+        updateAppState(packageName, KEY_FAVORITES)
     }
 
     fun removeFavorite(packageName: String) {
-        val favorites = getFavorites().toMutableSet()
-        favorites.remove(packageName)
-        prefs.edit { putStringSet(KEY_FAVORITES, favorites) }
+        removeAppState(packageName, KEY_FAVORITES)
     }
 
     fun getFavorites(): Set<String> = prefs.getStringSet(KEY_FAVORITES, emptySet()) ?: emptySet()
 
     fun hideApp(packageName: String) {
-        clearAllStates(packageName)
-        val hiddenApps = getHiddenApps().toMutableSet()
-        hiddenApps.add(packageName)
-        prefs.edit { putStringSet(KEY_HIDDEN, hiddenApps) }
+        updateAppState(packageName, KEY_HIDDEN)
     }
 
     fun unhideApp(packageName: String) {
-        val hiddenApps = getHiddenApps().toMutableSet()
-        hiddenApps.remove(packageName)
-        prefs.edit { putStringSet(KEY_HIDDEN, hiddenApps) }
+        removeAppState(packageName, KEY_HIDDEN)
     }
 
     fun getHiddenApps(): Set<String> = prefs.getStringSet(KEY_HIDDEN, emptySet()) ?: emptySet()
 
     fun markAsBad(packageName: String) {
-        clearAllStates(packageName)
-        val badApps = getBadApps().toMutableSet()
-        badApps.add(packageName)
-        prefs.edit { putStringSet(KEY_BAD, badApps) }
+        updateAppState(packageName, KEY_BAD)
     }
 
     fun removeBad(packageName: String) {
-        val badApps = getBadApps().toMutableSet()
-        badApps.remove(packageName)
-        prefs.edit { putStringSet(KEY_BAD, badApps) }
+        removeAppState(packageName, KEY_BAD)
     }
 
     fun getBadApps(): Set<String> = prefs.getStringSet(KEY_BAD, emptySet()) ?: emptySet()
 
+    private fun updateAppState(packageName: String, key: String) {
+        clearAllStates(packageName)
+        val apps = prefs.getStringSet(key, emptySet())?.toMutableSet() ?: mutableSetOf()
+        apps.add(packageName)
+        prefs.edit { putStringSet(key, apps) }
+    }
+
+    private fun removeAppState(packageName: String, key: String) {
+        val apps = prefs.getStringSet(key, emptySet())?.toMutableSet() ?: mutableSetOf()
+        apps.remove(packageName)
+        prefs.edit { putStringSet(key, apps) }
+    }
+
     private fun clearAllStates(packageName: String) {
-        removeFavorite(packageName)
-        unhideApp(packageName)
-        removeBad(packageName)
+        prefs.edit {
+            removeAppState(packageName, KEY_FAVORITES)
+            removeAppState(packageName, KEY_HIDDEN)
+            removeAppState(packageName, KEY_BAD)
+        }
     }
 
     fun setCustomName(packageName: String, customName: String) {

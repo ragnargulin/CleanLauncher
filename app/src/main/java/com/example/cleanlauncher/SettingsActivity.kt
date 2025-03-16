@@ -10,7 +10,6 @@ import android.widget.EditText
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
@@ -50,6 +49,11 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
+        setupToggleListeners()
+        setupCollapsibleSectionListeners()
+    }
+
+    private fun setupToggleListeners() {
         binding.statusBarToggle.setOnCheckedChangeListener { _, isChecked ->
             launcherPreferences.setStatusBarVisible(isChecked)
             setStatusBarVisibility(isChecked)
@@ -59,8 +63,20 @@ class SettingsActivity : AppCompatActivity() {
             val newStyle = if (isChecked) AppNameTextStyle.LEADING_UPPERCASE else AppNameTextStyle.ALL_LOWERCASE
             launcherPreferences.setAppNameTextStyle(newStyle)
         }
+    }
 
-        setupCollapsibleSections()
+    private fun setupCollapsibleSectionListeners() {
+        binding.fontSizeHeader.setOnClickListener {
+            toggleVisibility(binding.fontSizeGroup)
+        }
+
+        binding.togglesHeader.setOnClickListener {
+            toggleVisibility(binding.togglesContainer)
+        }
+
+        binding.allAppsHeader.setOnClickListener {
+            toggleVisibility(binding.hiddenApps)
+        }
     }
 
     private fun setStatusBarVisibility(isVisible: Boolean) {
@@ -93,20 +109,6 @@ class SettingsActivity : AppCompatActivity() {
             }
             launcherPreferences.setFontSize(newSize)
             restartHomeActivity()
-        }
-    }
-
-    private fun setupCollapsibleSections() {
-        binding.fontSizeHeader.setOnClickListener {
-            toggleVisibility(binding.fontSizeGroup)
-        }
-
-        binding.togglesHeader.setOnClickListener {
-            toggleVisibility(binding.togglesContainer)
-        }
-
-        binding.allAppsHeader.setOnClickListener {
-            toggleVisibility(binding.hiddenApps)
         }
     }
 

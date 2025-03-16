@@ -13,11 +13,11 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.cleanlauncher.databinding.ActivityHomeBinding
 
 class HomeActivity : AppCompatActivity() {
@@ -109,13 +109,12 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        binding.favoriteApps.apply {
-            layoutManager = LinearLayoutManager(this@HomeActivity)
-            addItemDecoration(createDivider())
-            overScrollMode = View.OVER_SCROLL_NEVER
-        }
+        setupRecyclerView(binding.favoriteApps)
+        setupRecyclerView(binding.searchResults)
+    }
 
-        binding.searchResults.apply {
+    private fun setupRecyclerView(recyclerView: RecyclerView) {
+        recyclerView.apply {
             layoutManager = LinearLayoutManager(this@HomeActivity)
             addItemDecoration(createDivider())
             overScrollMode = View.OVER_SCROLL_NEVER
@@ -179,10 +178,10 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun filterApps(query: String) {
-        val filteredList = cachedAllApps?.filter {
-            (it.appInfo.state == AppState.NEITHER || it.appInfo.state == AppState.BAD) &&
-
-                    it.appInfo.name.startsWith(query, ignoreCase = true)
+        val filteredList = cachedAllApps?.filterNot {
+            it.appInfo.state == AppState.FAVORITE || it.appInfo.state == AppState.HIDDEN
+        }?.filter {
+            it.appInfo.name.startsWith(query, ignoreCase = true)
         } ?: emptyList()
 
         binding.searchResults.adapter = AppAdapter(
