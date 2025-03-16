@@ -12,7 +12,6 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -41,7 +40,6 @@ class HomeActivity : AppCompatActivity() {
             view.setPadding(0, statusBarHeight, 0, 0)
             insets
         }
-        applyTheme()
         setupRecyclerView()
         setupSearchBar()
         setupSettingsButton()
@@ -49,9 +47,6 @@ class HomeActivity : AppCompatActivity() {
         lastKnownFontSize = launcherPreferences.getFontSize()
         updateAppLists(lastKnownFontSize ?: FontSize.MEDIUM)
         displayFavoriteApps()
-
-
-
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
@@ -88,20 +83,8 @@ class HomeActivity : AppCompatActivity() {
             cachedAllApps = null
         }
         updateAppLists(currentFontSize)
-        applyTheme()
         binding.searchBar.setText("")
 
-    }
-
-    private fun applyTheme() {
-        val desiredMode = if (launcherPreferences.isDarkMode()) {
-            AppCompatDelegate.MODE_NIGHT_YES
-        } else {
-            AppCompatDelegate.MODE_NIGHT_NO
-        }
-        if (AppCompatDelegate.getDefaultNightMode() != desiredMode) {
-            AppCompatDelegate.setDefaultNightMode(desiredMode)
-        }
     }
 
     private fun setupRecyclerView() {
@@ -135,7 +118,7 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    fun updateAppStates(apps: List<AppInfo>, launcherPreferences: LauncherPreferences) {
+    private fun updateAppStates(apps: List<AppInfo>, launcherPreferences: LauncherPreferences) {
         val favorites = launcherPreferences.getFavorites()
         val hiddenApps = launcherPreferences.getHiddenApps()
         val badApps = launcherPreferences.getBadApps()
@@ -209,7 +192,6 @@ class HomeActivity : AppCompatActivity() {
                     binding.searchResults.visibility = View.VISIBLE
                 }
             }
-
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         }

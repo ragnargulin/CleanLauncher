@@ -2,7 +2,6 @@ package com.example.cleanlauncher
 
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View

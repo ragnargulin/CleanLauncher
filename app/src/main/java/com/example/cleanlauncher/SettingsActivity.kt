@@ -44,8 +44,6 @@ class SettingsActivity : AppCompatActivity() {
         binding.statusBarToggle.isChecked = launcherPreferences.isStatusBarVisible()
         setStatusBarVisibility(binding.statusBarToggle.isChecked)
 
-        binding.themeToggle.isChecked = launcherPreferences.isDarkMode()
-
         binding.lowerCaseToggle.isChecked = launcherPreferences.getAppNameTextStyle() == AppNameTextStyle.LEADING_UPPERCASE
 
         setupFontSizeSelector()
@@ -55,14 +53,6 @@ class SettingsActivity : AppCompatActivity() {
         binding.statusBarToggle.setOnCheckedChangeListener { _, isChecked ->
             launcherPreferences.setStatusBarVisible(isChecked)
             setStatusBarVisibility(isChecked)
-        }
-
-        binding.themeToggle.setOnCheckedChangeListener { _, isChecked ->
-            launcherPreferences.toggleTheme()
-            AppCompatDelegate.setDefaultNightMode(
-                if (isChecked) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
-            )
-            recreate()
         }
 
         binding.lowerCaseToggle.setOnCheckedChangeListener { _, isChecked ->
@@ -250,7 +240,7 @@ class SettingsActivity : AppCompatActivity() {
             .show()
     }
 
-    fun updateAppStates(apps: List<AppInfo>, launcherPreferences: LauncherPreferences) {
+    private fun updateAppStates(apps: List<AppInfo>, launcherPreferences: LauncherPreferences) {
         val favorites = launcherPreferences.getFavorites()
         val hiddenApps = launcherPreferences.getHiddenApps()
         val badApps = launcherPreferences.getBadApps()
@@ -296,8 +286,6 @@ class SettingsActivity : AppCompatActivity() {
             launcherPreferences = launcherPreferences,
             showAppState = true,
             isSettingsContext = true
-        ).apply {
-            notifyDataSetChanged() // Ensure the adapter is refreshed
-        }
+        )
     }
 }

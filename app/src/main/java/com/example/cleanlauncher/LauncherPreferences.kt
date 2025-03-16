@@ -50,9 +50,6 @@ class LauncherPreferences private constructor(context: Context) {
         val badApps = getBadApps().toMutableSet()
         badApps.add(packageName)
         prefs.edit { putStringSet(KEY_BAD, badApps) }
-
-        println("Marked as BAD: $packageName")
-
     }
 
     fun removeBad(packageName: String) {
@@ -84,13 +81,6 @@ class LauncherPreferences private constructor(context: Context) {
         return FontSize.valueOf(name ?: FontSize.MEDIUM.name)
     }
 
-    fun toggleTheme() {
-        val isDarkMode = isDarkMode()
-        prefs.edit { putBoolean(KEY_DARK_MODE, !isDarkMode) }
-    }
-
-    fun isDarkMode(): Boolean = prefs.getBoolean(KEY_DARK_MODE, true)
-
     fun setAppNameTextStyle(style: AppNameTextStyle) {
         prefs.edit { putString(KEY_APP_NAME_TEXT_STYLE, style.name) }
     }
@@ -107,7 +97,6 @@ class LauncherPreferences private constructor(context: Context) {
         private const val KEY_BAD = "bad_apps"
         private const val KEY_FONT_SIZE = "font_size"
         private const val KEY_STATUS_BAR_VISIBLE = "status_bar_visible"
-        private const val KEY_DARK_MODE = "dark_mode"
         private const val KEY_APP_NAME_TEXT_STYLE = "app_name_text_style"
 
         @Volatile
