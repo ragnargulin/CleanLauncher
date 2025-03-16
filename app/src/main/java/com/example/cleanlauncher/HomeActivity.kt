@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.cleanlauncher.databinding.ActivityHomeBinding
@@ -34,12 +35,10 @@ class HomeActivity : AppCompatActivity() {
 
         launcherPreferences = LauncherPreferences.getInstance(this)
 
-        // Adjust padding for status bar
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
-            val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
-            view.setPadding(0, statusBarHeight, 0, 0)
-            insets
-        }
+        val statusBarHeight = getStatusBarHeight()
+        binding.root.setPadding(0, statusBarHeight, 0, 0)
+
+
         setupRecyclerView()
         setupSearchBar()
         setupSettingsButton()
@@ -47,6 +46,7 @@ class HomeActivity : AppCompatActivity() {
         lastKnownFontSize = launcherPreferences.getFontSize()
         updateAppLists(lastKnownFontSize ?: FontSize.MEDIUM)
         displayFavoriteApps()
+        setStatusBarVisibility(launcherPreferences.isStatusBarVisible())
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
@@ -69,6 +69,26 @@ class HomeActivity : AppCompatActivity() {
         inputMethodManager.hideSoftInputFromWindow(binding.root.windowToken, 0)
     }
 
+    private fun getStatusBarHeight(): Int {
+        val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
+        return if (resourceId > 0) {
+            resources.getDimensionPixelSize(resourceId)
+        } else {
+            0
+        }
+    }
+
+    private fun setStatusBarVisibility(isVisible: Boolean) {
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            if (isVisible) {
+                show(WindowInsetsCompat.Type.statusBars())
+            } else {
+                hide(WindowInsetsCompat.Type.statusBars())
+            }
+        }
+    }
+
+
     override fun onPause() {
         super.onPause()
         binding.searchBar.clearFocus()
@@ -84,6 +104,7 @@ class HomeActivity : AppCompatActivity() {
         }
         updateAppLists(currentFontSize)
         binding.searchBar.setText("")
+        setStatusBarVisibility(launcherPreferences.isStatusBarVisible())
 
     }
 
