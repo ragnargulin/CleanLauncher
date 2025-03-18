@@ -24,7 +24,7 @@
             android:layout_height="wrap_content"
             android:autofillHints=""
             android:hint="@string/search_apps"
-            android:textColorHint="?android:textColor"
+            android:textColorHint="@color/grey"
             android:inputType="text"
             android:paddingEnd="48dp"
             android:padding="8dp"

@@ -54,7 +54,7 @@ class AppAdapter(
             AppState.FAVORITE -> "\u2764" // Unicode for heart
             AppState.HIDDEN -> "\uD83D\uDC7B" // Unicode for ghost
             AppState.NEITHER -> "" // No symbol for NEITHER
-            AppState.BAD -> "\uD83D\uDC80" // Unicode for bad
+            AppState.BAD -> "\uD83D\uDE08" // Unicode for bad
         }
 
         if (showAppState) {
